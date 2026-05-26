@@ -2579,6 +2579,9 @@ document.getElementById('btn-signin').addEventListener('click', () => {
 });
 
 window.addEventListener('load', () => {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
   if (!window.google || !google.accounts || !google.accounts.oauth2) return;
   initTokenClient();
   // Silent re-auth if token hasn't expired yet (60s buffer)
