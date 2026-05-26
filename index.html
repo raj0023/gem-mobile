@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0d1117">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="GEM Mobile">
+  <title>GEM Mobile</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0d1117;
+      --surface:  #161b22;
+      --surface2: #21262d;
+      --border:   #30363d;
+      --text:     #e6edf3;
+      --text2:    #8b949e;
+      --accent:   #58a6ff;
+      --green:    #3fb950;
+      --amber:    #d29922;
+      --red:      #f85149;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      min-height: 100dvh;
+      -webkit-font-smoothing: antialiased;
+      overscroll-behavior: none;
+    }
+
+    [hidden] { display: none !important; }
+
+    /* ── Sign-in ──────────────────────────────── */
+    #screen-signin {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: 2rem 1.5rem;
+      text-align: center;
+    }
+
+    .signin-logo {
+      font-size: 2.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 0.375rem;
+    }
+
+    .signin-divider {
+      width: 48px;
+      height: 2px;
+      background: var(--border);
+      margin: 0.75rem auto 0.75rem;
+      border-radius: 2px;
+    }
+
+    .signin-sub {
+      color: var(--text2);
+      font-size: 0.9375rem;
+      margin-bottom: 3rem;
+    }
+
+    .btn-google {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: #ffffff;
+      color: #3c4043;
+      border: none;
+      border-radius: 8px;
+      padding: 12px 24px;
+      font-size: 15px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      min-width: 220px;
+      min-height: 48px;
+      transition: box-shadow 0.15s, opacity 0.15s;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.4);
+      margin-bottom: 2rem;
+    }
+    .btn-google:hover  { box-shadow: 0 3px 12px rgba(0,0,0,0.5); }
+    .btn-google:active { opacity: 0.85; }
+    .btn-google:disabled { opacity: 0.5; cursor: default; }
+
+    .signin-note {
+      color: var(--text2);
+      font-size: 0.8125rem;
+      max-width: 240px;
+      line-height: 1.6;
+    }
+
+    /* ── Loading ──────────────────────────────── */
+    #screen-loading {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      gap: 1.25rem;
+    }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-text { color: var(--text2); font-size: 0.9375rem; }
+
+    /* ── List screen ──────────────────────────── */
+    #screen-list {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .header {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      padding-top: max(14px, env(safe-area-inset-top));
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .header-title {
+      font-size: 1.0625rem;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .btn-sync {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      border-radius: 6px;
+      padding: 7px 13px;
+      font-size: 0.8125rem;
+      font-family: inherit;
+      cursor: pointer;
+      min-height: 36px;
+      transition: opacity 0.15s;
+    }
+    .btn-sync:active { opacity: 0.7; }
+    .btn-sync:disabled { opacity: 0.5; cursor: default; }
+    .btn-sync.syncing .sync-icon { display: inline-block; animation: spin 0.75s linear infinite; }
+
+    .search-wrap {
+      flex-shrink: 0;
+      padding: 10px 14px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .search-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      padding: 9px 12px;
+    }
+
+    .search-icon { color: var(--text2); flex-shrink: 0; font-size: 0.9375rem; }
+
+    .search-input {
+      flex: 1;
+      background: none;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 1rem;
+      font-family: inherit;
+      min-width: 0;
+    }
+    .search-input::placeholder { color: var(--text2); }
+
+    .search-clear {
+      background: none;
+      border: none;
+      color: var(--text2);
+      cursor: pointer;
+      font-size: 1rem;
+      padding: 0;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .chips-wrap {
+      flex-shrink: 0;
+      padding: 8px 14px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .chips-wrap::-webkit-scrollbar { display: none; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 13px;
+      border-radius: 20px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      color: var(--text2);
+      background: transparent;
+      transition: all 0.12s;
+      margin-right: 7px;
+      min-height: 34px;
+    }
+    .chip:last-child { margin-right: 0; }
+    .chip.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #0d1117;
+    }
+    .chip-count { font-size: 0.75rem; opacity: 0.8; }
+
+    /* ── Bid list ─────────────────────────────── */
+    .bid-list {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .bid-card {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.08s;
+      user-select: none;
+    }
+    .bid-card:active { background: var(--surface2); }
+
+    .bid-number {
+      font-size: 0.9375rem;
+      font-weight: 600;
+      margin-bottom: 3px;
+      letter-spacing: 0.01em;
+    }
+
+    .bid-client {
+      font-size: 0.875rem;
+      color: var(--text);
+      margin-bottom: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bid-meta {
+      font-size: 0.8125rem;
+      color: var(--text2);
+      margin-bottom: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .bid-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .stage-badge {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .cost-ok   { font-size: 0.75rem; color: var(--green); }
+    .cost-warn { font-size: 0.75rem; color: var(--amber); }
+    .cost-none { font-size: 0.75rem; color: var(--text2); }
+
+    /* ── Footer ───────────────────────────────── */
+    .footer-bar {
+      flex-shrink: 0;
+      padding: 10px 16px;
+      padding-bottom: max(10px, env(safe-area-inset-bottom));
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      font-size: 0.75rem;
+      color: var(--text2);
+      text-align: center;
+      line-height: 1.4;
+    }
+
+    /* ── Empty / error states ─────────────────── */
+    .empty-state {
+      padding: 4rem 2rem;
+      text-align: center;
+      color: var(--text2);
+      font-size: 0.9375rem;
+    }
+
+    #screen-error {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      gap: 1rem;
+    }
+
+    .error-icon  { font-size: 2.5rem; }
+    .error-title { font-size: 1.0625rem; font-weight: 600; color: var(--red); }
+    .error-msg   { color: var(--text2); font-size: 0.875rem; line-height: 1.6; max-width: 300px; }
+
+    .btn-retry {
+      background: var(--accent);
+      color: #0d1117;
+      border: none;
+      border-radius: 8px;
+      padding: 11px 28px;
+      font-size: 0.9375rem;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      min-height: 44px;
+      margin-top: 0.5rem;
+    }
+    .btn-retry:active { opacity: 0.85; }
+
+    /* ── Auth error (sign-in screen) ─────────── */
+    #auth-error {
+      margin-bottom: 1.75rem;
+      width: 100%;
+      max-width: 280px;
+    }
+
+    .auth-error-box {
+      background: rgba(248,81,73,0.1);
+      border: 1px solid rgba(248,81,73,0.3);
+      border-radius: 10px;
+      padding: 12px 16px;
+      text-align: left;
+    }
+
+    .auth-error-title {
+      color: var(--red);
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .auth-error-hint {
+      color: var(--text2);
+      font-size: 0.8125rem;
+      line-height: 1.45;
+    }
+
+    /* ── Toast ────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 9px 18px;
+      border-radius: 8px;
+      font-size: 0.8125rem;
+      z-index: 200;
+      max-width: 88vw;
+      text-align: center;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #toast.visible { opacity: 1; }
+
+    /* ── Detail screen ────────────────────────── */
+    #screen-detail {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .detail-header {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 14px 11px 8px;
+      padding-top: max(11px, env(safe-area-inset-top));
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .btn-back {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .btn-back:active { opacity: 0.6; }
+
+    .detail-header-bn {
+      flex: 1;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .detail-body {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+
+    /* ── Detail field rows ─────────────────────── */
+    .detail-fields {
+      padding: 4px 16px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .field-row {
+      display: flex;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: flex-start;
+    }
+    .field-row:last-child { border-bottom: none; }
+
+    .field-label {
+      flex-shrink: 0;
+      width: 72px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text2);
+      padding-top: 2px;
+    }
+
+    .field-value {
+      flex: 1;
+      font-size: 0.9375rem;
+      color: var(--text);
+      word-break: break-word;
+      line-height: 1.4;
+    }
+
+    /* ── Detail sections ────────────────────────── */
+    .detail-section {
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text2);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .costing-ts {
+      font-size: 0.8125rem;
+      color: var(--text2);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    .costing-ts strong { color: var(--text); font-weight: 500; }
+
+    .btn-open-drive {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 13px 16px;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      min-height: 50px;
+      transition: border-color 0.12s, opacity 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-open-drive:active  { opacity: 0.7; }
+    .btn-open-drive:disabled { opacity: 0.4; cursor: default; }
+
+    .costing-none {
+      font-size: 0.875rem;
+      color: var(--text2);
+      font-style: italic;
+    }
+
+    /* ── Collapsible sections ───────────────────── */
+    .coll-section {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .coll-header {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      min-height: 50px;
+      gap: 6px;
+    }
+    .coll-header:active { background: var(--surface2); }
+
+    .coll-icon  { font-size: 0.9375rem; flex-shrink: 0; }
+
+    .coll-title {
+      flex: 1;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text2);
+    }
+
+    .coll-count {
+      font-size: 0.75rem;
+      color: var(--text2);
+      margin-right: 4px;
+    }
+
+    .coll-chevron {
+      color: var(--text2);
+      font-size: 0.6875rem;
+      transition: transform 0.18s;
+      display: inline-block;
+    }
+    .coll-section.open .coll-chevron { transform: rotate(180deg); }
+
+    .coll-body {
+      display: none;
+      padding: 0 16px 12px;
+    }
+    .coll-section.open .coll-body { display: block; }
+
+    .empty-section {
+      font-size: 0.875rem;
+      color: var(--text2);
+      font-style: italic;
+      padding: 6px 0 2px;
+    }
+
+    /* ── Workflow events ────────────────────────── */
+    .event-row {
+      display: flex;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: flex-start;
+    }
+    .event-row:last-child { border-bottom: none; }
+
+    .event-icon { font-size: 1rem; flex-shrink: 0; line-height: 1.5; }
+
+    .event-content { flex: 1; min-width: 0; }
+
+    .event-type {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .event-sub {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+      font-size: 0.8125rem;
+      color: var(--text2);
+    }
+
+    .ev-status-pill {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      padding: 1px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .ev-reminder { font-size: 0.75rem; }
+
+    .event-notes {
+      font-size: 0.8125rem;
+      color: var(--text2);
+      margin-top: 4px;
+      word-break: break-word;
+      line-height: 1.45;
+    }
+
+    /* ── Security deposits ──────────────────────── */
+    .deposit-row {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .deposit-row:last-child { border-bottom: none; }
+
+    .deposit-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+
+    .dep-type-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: var(--surface2);
+      color: var(--text2);
+    }
+
+    .dep-amount {
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .dep-meta {
+      font-size: 0.8125rem;
+      color: var(--text2);
+      line-height: 1.55;
+    }
+
+    .due-ok   { color: var(--green); }
+    .due-soon { color: var(--amber); }
+    .due-past { color: var(--red);   }
+  </style>
+</head>
+<body>
+
+<!-- ── Screen 1: Sign In ───────────────────────────────────────────── -->
+<div id="screen-signin">
+  <div class="signin-logo">GEM Mobile</div>
+  <div class="signin-divider"></div>
+  <div class="signin-sub">GeM Bid Dashboard · Read Only</div>
+
+  <button class="btn-google" id="btn-signin">
+    <!-- Google "G" logo -->
+    <svg width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+      <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+    </svg>
+    Sign in with Google
+  </button>
+
+  <div id="auth-error" hidden>
+    <div class="auth-error-box">
+      <div class="auth-error-title" id="auth-error-title">Account not authorized</div>
+      <div class="auth-error-hint">Tap "Sign in with Google" above to try a different account.</div>
+    </div>
+  </div>
+
+  <p class="signin-note">Your data stays in your Google Drive. Nothing is stored on this device.</p>
+</div>
+
+<!-- ── Screen: Loading ─────────────────────────────────────────────── -->
+<div id="screen-loading" hidden>
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Loading…</div>
+</div>
+
+<!-- ── Screen 2: Bid List ─────────────────────────────────────────── -->
+<div id="screen-list" hidden>
+  <div class="header">
+    <span class="header-title">GEM Mobile</span>
+    <button class="btn-sync" id="btn-sync" aria-label="Sync data">
+      <span class="sync-icon" aria-hidden="true">↻</span> Sync
+    </button>
+  </div>
+
+  <div class="search-wrap">
+    <div class="search-row">
+      <span class="search-icon" aria-hidden="true">🔍</span>
+      <input
+        type="search"
+        class="search-input"
+        id="search-input"
+        placeholder="Search bids…"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
+        aria-label="Search bids"
+      >
+      <button class="search-clear" id="search-clear" hidden aria-label="Clear search">✕</button>
+    </div>
+  </div>
+
+  <div class="chips-wrap" id="chips-wrap" role="group" aria-label="Stage filter"></div>
+
+  <div class="bid-list" id="bid-list" role="list"></div>
+
+  <div class="footer-bar" id="footer-bar" aria-live="polite"></div>
+</div>
+
+<!-- ── Screen 3: Bid Detail ───────────────────────────────────────── -->
+<div id="screen-detail" hidden>
+  <div class="detail-header">
+    <button class="btn-back" id="btn-back" aria-label="Back to bid list">←</button>
+    <span class="detail-header-bn" id="detail-bn"></span>
+    <span class="stage-badge" id="detail-stage-badge"></span>
+  </div>
+  <div class="detail-body" id="detail-body"></div>
+</div>
+
+<!-- ── Screen: Error ───────────────────────────────────────────────── -->
+<div id="screen-error" hidden>
+  <div class="error-icon" aria-hidden="true">⚠️</div>
+  <div class="error-title">Could not load data</div>
+  <div class="error-msg" id="error-msg">An error occurred.</div>
+  <button class="btn-retry" id="btn-retry">Sign In Again</button>
+</div>
+
+<!-- Toast -->
+<div id="toast" role="status" aria-live="polite"></div>
+
+<!-- Google Identity Services only — no gapi needed, we use fetch() directly -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+
+<script>
+'use strict';
+
+// ── USER CONFIGURATION ─────────────────────────────────────────────────
+const GOOGLE_CLIENT_ID   = '612227002141-roj04qtljuvb0un42slljuaqq26d6l5q.apps.googleusercontent.com';
+const GDRIVE_FOLDER_NAME = 'GEM-Mobile';
+// ───────────────────────────────────────────────────────────────────────
+
+const DRIVE_API          = 'https://www.googleapis.com/drive/v3';
+const COSTING_STALE_DAYS = 7;
+
+// ── App state ──────────────────────────────────────────────────────────
+let accessToken  = null;
+let tokenExpiry  = 0;        // ms timestamp
+let tokenClient  = null;
+
+let bids         = [];       // array of bid objects from bids.json
+let manifestData = null;     // manifest.json contents
+let workflowData = null;     // workflow.json contents
+let securityData = null;     // security.json contents
+
+// Cached Drive IDs (permanent for the session)
+let gemFolderId    = null;       // GEM-Mobile folder
+let dataFolderId   = null;       // GEM-Mobile/data subfolder
+let costingFolderId = undefined; // GEM-Mobile/costing subfolder; undefined = not yet fetched
+
+const costingFileIds = {};   // filename → Drive fileId cache
+
+// Filter state
+let activeStage  = 'ALL';
+let searchQuery  = '';
+
+// Detail navigation state
+let listScrollPos = 0;
+let currentBid    = null;
+
+// ── Screen management ─────────────────────────────────────────────────
+const SCREENS = ['screen-signin', 'screen-loading', 'screen-list', 'screen-detail', 'screen-error'];
+
+function show(id) {
+  SCREENS.forEach(s => { document.getElementById(s).hidden = (s !== id); });
+}
+
+// ── HTML helpers ──────────────────────────────────────────────────────
+function esc(s) {
+  if (s == null) return '';
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+// ── Date helpers ──────────────────────────────────────────────────────
+const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function parseDDMMYYYY(str) {
+  if (!str) return null;
+  const parts = str.split(' ')[0].split('-');
+  if (parts.length !== 3) return null;
+  const d = new Date(+parts[2], +parts[1] - 1, +parts[0]);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+function formatShortDate(str) {
+  const d = parseDDMMYYYY(str);
+  if (!d) return '?';
+  return `${d.getDate()}-${MONTHS_SHORT[d.getMonth()]}`;
+}
+
+function formatDisplayDate(str) {
+  if (!str) return '—';
+  const d = parseDDMMYYYY(str);
+  if (!d) return str;
+  return `${d.getDate()}-${MONTHS_SHORT[d.getMonth()]}-${d.getFullYear()}`;
+}
+
+function daysSince(str) {
+  const d = parseDDMMYYYY(str);
+  if (!d) return Infinity;
+  return (Date.now() - d.getTime()) / 86_400_000;
+}
+
+// ── Stage display ─────────────────────────────────────────────────────
+const STAGE_LABELS = {
+  'QUOTED':                 'Quoted',
+  'TECHNICAL EVALUATION':   'Tech Eval',
+  'FINANCIAL EVALUATION':   'Fin Eval',
+  'ORDER':                  'Order',
+  'CLOSED':                 'Closed',
+};
+
+const STAGE_COLORS = {
+  'QUOTED':                 ['#0d2448', '#58a6ff'],
+  'TECHNICAL EVALUATION':   ['#2e1c06', '#e3a726'],
+  'FINANCIAL EVALUATION':   ['#2a1d06', '#d29922'],
+  'ORDER':                  ['#071f10', '#3fb950'],
+  'CLOSED':                 ['#250d0d', '#f85149'],
+};
+
+function stageLabel(s)  { return STAGE_LABELS[s]  || s; }
+function stageBadgeStyle(s) {
+  const [bg, col] = STAGE_COLORS[s] || ['#21262d', '#8b949e'];
+  return `background:${bg};color:${col}`;
+}
+
+// ── Costing indicator (bid list) ──────────────────────────────────────
+function costingHtml(bid) {
+  if (!bid.has_costing) {
+    return `<span class="cost-none">No costing file</span>`;
+  }
+  const date = bid.costing_last_backed_up;
+  if (!date) {
+    return `<span class="cost-warn">⚠ Costing not backed up</span>`;
+  }
+  const days  = daysSince(date);
+  const label = formatShortDate(date);
+  if (days >= COSTING_STALE_DAYS) {
+    return `<span class="cost-warn">⚠ Costing: ${label}</span>`;
+  }
+  return `<span class="cost-ok">Costing: ${label} ✓</span>`;
+}
+
+// ── Drive API helpers ─────────────────────────────────────────────────
+async function driveGet(url) {
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+  if (res.status === 401) { const e = new Error('Session expired'); e.code = 401; throw e; }
+  if (!res.ok) throw new Error(`Drive API error ${res.status}: ${res.statusText}`);
+  return res.json();
+}
+
+async function driveGetMedia(fileId) {
+  const res = await fetch(`${DRIVE_API}/files/${fileId}?alt=media`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+  if (res.status === 401) { const e = new Error('Session expired'); e.code = 401; throw e; }
+  if (!res.ok) throw new Error(`Drive media error ${res.status}`);
+  return res.json();
+}
+
+async function getGemFolderId() {
+  if (gemFolderId) return gemFolderId;
+  const q = `name='${GDRIVE_FOLDER_NAME}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+  const data = await driveGet(`${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive`);
+  if (!data.files || data.files.length === 0) {
+    throw new Error(`Folder "${GDRIVE_FOLDER_NAME}" not found in Google Drive. Please set up the export folder in GEM Dashboard Settings first.`);
+  }
+  gemFolderId = data.files[0].id;
+  return gemFolderId;
+}
+
+async function getDataFolderId() {
+  if (dataFolderId) return dataFolderId;
+  const pid = await getGemFolderId();
+  const q = `name='data' and '${pid}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+  const res = await driveGet(`${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive`);
+  dataFolderId = (res.files && res.files.length > 0) ? res.files[0].id : pid;
+  return dataFolderId;
+}
+
+async function findFileId(name, parentId) {
+  const q = `name='${name}' and '${parentId}' in parents and trashed=false`;
+  const data = await driveGet(`${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive`);
+  return (data.files && data.files.length > 0) ? data.files[0].id : null;
+}
+
+async function readJsonFromDrive(filename) {
+  const parentId = await getDataFolderId();
+  const fileId   = await findFileId(filename, parentId);
+  if (!fileId) {
+    throw new Error(`"${filename}" not found in Google Drive. Please run Export Now from GEM Dashboard Settings → Backup.`);
+  }
+  return driveGetMedia(fileId);
+}
+
+// ── Costing file Drive lookup ─────────────────────────────────────────
+async function getCostingFolderId() {
+  if (costingFolderId !== undefined) return costingFolderId;
+  const pid = await getGemFolderId();
+  const q = `name='costing' and '${pid}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+  const res = await driveGet(`${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive`);
+  costingFolderId = (res.files && res.files.length > 0) ? res.files[0].id : null;
+  return costingFolderId;
+}
+
+async function findCostingFileId(filename) {
+  if (costingFileIds[filename]) return costingFileIds[filename];
+  const parentId = await getCostingFolderId();
+  const q = parentId
+    ? `name='${filename}' and '${parentId}' in parents and trashed=false`
+    : `name='${filename}' and trashed=false`;
+  const data = await driveGet(`${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive`);
+  const fileId = (data.files && data.files.length > 0) ? data.files[0].id : null;
+  if (fileId) costingFileIds[filename] = fileId;
+  return fileId;
+}
+
+// ── Data loading ──────────────────────────────────────────────────────
+async function loadData() {
+  document.getElementById('loading-text').textContent = 'Reading manifest…';
+  manifestData = await readJsonFromDrive('manifest.json');
+
+  document.getElementById('loading-text').textContent = 'Loading bids…';
+  const bidsJson = await readJsonFromDrive('bids.json');
+  bids = bidsJson.bids || [];
+
+  document.getElementById('loading-text').textContent = 'Loading workflow…';
+  try { workflowData = await readJsonFromDrive('workflow.json'); }
+  catch { workflowData = { events: {} }; }
+
+  document.getElementById('loading-text').textContent = 'Loading security…';
+  try { securityData = await readJsonFromDrive('security.json'); }
+  catch { securityData = { deposits: {} }; }
+
+  renderAll();
+  show('screen-list');
+}
+
+// ── Chips ─────────────────────────────────────────────────────────────
+function renderChips() {
+  const wrap = document.getElementById('chips-wrap');
+
+  const counts = {};
+  bids.forEach(b => { counts[b.stage] = (counts[b.stage] || 0) + 1; });
+
+  const stageOrder = ['QUOTED','TECHNICAL EVALUATION','FINANCIAL EVALUATION','ORDER','CLOSED'];
+  const stages = Object.keys(counts).sort((a, b) => {
+    const ia = stageOrder.indexOf(a), ib = stageOrder.indexOf(b);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+  });
+
+  const chips = [{ stage: 'ALL', label: 'All', count: bids.length }, ...stages.map(s => ({
+    stage: s, label: stageLabel(s), count: counts[s]
+  }))];
+
+  wrap.innerHTML = chips.map(({ stage, label, count }) =>
+    `<button class="chip${activeStage === stage ? ' active' : ''}" data-stage="${esc(stage)}">
+      ${esc(label)} <span class="chip-count">${count}</span>
+    </button>`
+  ).join('');
+
+  wrap.querySelectorAll('.chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+      activeStage = btn.dataset.stage;
+      renderChips();
+      renderBidList();
+    });
+  });
+}
+
+// ── Bid list ──────────────────────────────────────────────────────────
+function filteredBids() {
+  let result = bids;
+
+  if (activeStage !== 'ALL') {
+    result = result.filter(b => b.stage === activeStage);
+  }
+
+  if (searchQuery) {
+    const q = searchQuery.toLowerCase();
+    result = result.filter(b =>
+      (b.bid_number        || '').toLowerCase().includes(q) ||
+      (b.client            || '').toLowerCase().includes(q) ||
+      (b.product           || '').toLowerCase().includes(q) ||
+      (b.location          || '').toLowerCase().includes(q) ||
+      (b.quoted_company    || '').toLowerCase().includes(q) ||
+      (b.gem_contract_number || '').toLowerCase().includes(q)
+    );
+  }
+
+  return result;
+}
+
+function renderBidList() {
+  const list = document.getElementById('bid-list');
+  const fb   = filteredBids();
+
+  if (fb.length === 0) {
+    list.innerHTML = `<div class="empty-state">No bids match your search</div>`;
+    return;
+  }
+
+  list.innerHTML = fb.map((bid, i) => `
+    <div class="bid-card" role="listitem" data-idx="${i}">
+      <div class="bid-number">${esc(bid.bid_number)}</div>
+      <div class="bid-client">${esc(bid.client)}</div>
+      <div class="bid-meta">${esc(bid.product)} · ${esc(bid.location)}</div>
+      <div class="bid-row">
+        <span class="stage-badge" style="${stageBadgeStyle(bid.stage)}">${stageLabel(bid.stage)}</span>
+        ${costingHtml(bid)}
+      </div>
+    </div>
+  `).join('');
+
+  list.querySelectorAll('.bid-card').forEach((card, i) => {
+    card.addEventListener('click', () => openDetail(fb[i]));
+  });
+}
+
+function renderFooter() {
+  const el = document.getElementById('footer-bar');
+  if (!manifestData) { el.textContent = ''; return; }
+  const updated = manifestData.last_exported || '—';
+  const total   = manifestData.total_bids    || bids.length;
+  el.textContent = `Updated ${updated}  ·  ${total} bids`;
+}
+
+function renderAll() {
+  renderChips();
+  renderBidList();
+  renderFooter();
+}
+
+// ── Search ────────────────────────────────────────────────────────────
+let searchTimer = null;
+
+document.getElementById('search-input').addEventListener('input', e => {
+  searchQuery = e.target.value.trim();
+  document.getElementById('search-clear').hidden = !searchQuery;
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(renderBidList, 80);
+});
+
+document.getElementById('search-clear').addEventListener('click', () => {
+  const inp = document.getElementById('search-input');
+  inp.value = '';
+  inp.focus();
+  searchQuery = '';
+  document.getElementById('search-clear').hidden = true;
+  renderBidList();
+});
+
+// ── Sync button ───────────────────────────────────────────────────────
+document.getElementById('btn-sync').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-sync');
+  btn.classList.add('syncing');
+  btn.disabled = true;
+
+  try {
+    manifestData = await readJsonFromDrive('manifest.json');
+    const bidsJson = await readJsonFromDrive('bids.json');
+    bids = bidsJson.bids || [];
+    try { workflowData = await readJsonFromDrive('workflow.json'); } catch { workflowData = { events: {} }; }
+    try { securityData = await readJsonFromDrive('security.json'); } catch { securityData = { deposits: {} }; }
+    renderAll();
+    showToast('Data updated');
+  } catch (err) {
+    if (err.code === 401) {
+      showToast('Session expired — please sign in again');
+      accessToken = null;
+      show('screen-signin');
+    } else {
+      showToast('Sync failed: ' + err.message);
+    }
+  } finally {
+    btn.classList.remove('syncing');
+    btn.disabled = false;
+  }
+});
+
+// ── Detail screen ─────────────────────────────────────────────────────
+function openDetail(bid) {
+  listScrollPos = document.getElementById('bid-list').scrollTop;
+  currentBid    = bid;
+
+  document.getElementById('detail-bn').textContent = bid.bid_number;
+  const badge = document.getElementById('detail-stage-badge');
+  badge.textContent = stageLabel(bid.stage);
+  badge.setAttribute('style', stageBadgeStyle(bid.stage));
+
+  const body = document.getElementById('detail-body');
+  body.innerHTML = buildDetailHtml(bid);
+  body.scrollTop  = 0;
+
+  wireDetailListeners(bid);
+  show('screen-detail');
+}
+
+document.getElementById('btn-back').addEventListener('click', () => {
+  show('screen-list');
+  requestAnimationFrame(() => {
+    document.getElementById('bid-list').scrollTop = listScrollPos;
+  });
+});
+
+// ── Detail HTML builders ───────────────────────────────────────────────
+function buildDetailHtml(bid) {
+  return buildFieldsSection(bid)
+       + buildCostingSection(bid)
+       + buildWorkflowSection(bid)
+       + buildSecuritySection(bid);
+}
+
+function buildFieldsSection(bid) {
+  const rows = [
+    ['CLIENT',   esc(bid.client   || '—')],
+    ['PRODUCT',  esc(bid.product  || '—')],
+    ['LOCATION', esc(bid.location || '—')],
+    ['COMPANY',  esc(bid.quoted_company || '—')],
+  ];
+  if (bid.stage === 'ORDER') {
+    if (bid.gem_contract_number) rows.push(['CONTRACT', esc(bid.gem_contract_number)]);
+    if (bid.order_date)          rows.push(['ORDER',    esc(formatDisplayDate(bid.order_date))]);
+  }
+  if (bid.quoted_date) rows.push(['QUOTED', esc(formatDisplayDate(bid.quoted_date))]);
+
+  return `<div class="detail-fields">
+    ${rows.map(([lbl, val]) => `
+      <div class="field-row">
+        <span class="field-label">${lbl}</span>
+        <span class="field-value">${val}</span>
+      </div>`).join('')}
+  </div>`;
+}
+
+function buildCostingSection(bid) {
+  let inner;
+  if (!bid.has_costing) {
+    inner = `<div class="costing-none">No costing file linked to this bid.</div>`;
+  } else {
+    const ts = bid.costing_last_backed_up
+      ? `Last backed up: <strong>${esc(bid.costing_last_backed_up)}</strong>`
+      : 'Not yet backed up';
+    const fn = bid.costing_gdrive_filename || '';
+    inner = `
+      <div class="costing-ts">${ts}</div>
+      <button class="btn-open-drive" id="btn-open-costing" data-filename="${esc(fn)}"${fn ? '' : ' disabled'}>
+        📂&nbsp; Open in Google Drive
+      </button>`;
+  }
+  return `<div class="detail-section">
+    <div class="section-label">📄 Costing File</div>
+    ${inner}
+  </div>`;
+}
+
+function buildWorkflowSection(bid) {
+  const raw    = (workflowData && workflowData.events && workflowData.events[bid.bid_number]) || [];
+  const events = [...raw].sort((a, b) => {
+    const da = parseDDMMYYYY(a.event_date), db = parseDDMMYYYY(b.event_date);
+    if (!da && !db) return 0; if (!da) return 1; if (!db) return -1;
+    return db - da;
+  });
+
+  const count = events.length;
+
+  let body;
+  if (count === 0) {
+    body = `<div class="empty-section">No workflow events recorded</div>`;
+  } else {
+    body = events.map(ev => {
+      const icon = ev.status === 'Done' ? '✅' : ev.auto_created ? '🔄' : '🔔';
+      const [sBg, sCol] = ev.status === 'Done'    ? ['#071f10','#3fb950']
+                        : ev.status === 'Pending' ? ['#2a1d06','#d29922']
+                        : ['#21262d','#8b949e'];
+      const pill = `<span class="ev-status-pill" style="background:${sBg};color:${sCol}">${esc(ev.status)}</span>`;
+      const remHtml = (ev.reminder === 'Active')
+        ? `<span class="ev-reminder" style="color:#cba6f7" title="Reminder active">🔔</span>`
+        : '';
+      const notesHtml = ev.notes
+        ? `<div class="event-notes">${esc(ev.notes)}</div>`
+        : '';
+      return `<div class="event-row">
+        <span class="event-icon">${icon}</span>
+        <div class="event-content">
+          <div class="event-type">${esc(ev.event_type)}</div>
+          <div class="event-sub">
+            <span>${esc(ev.event_date || '—')}</span>
+            ${pill}
+            ${remHtml}
+          </div>
+          ${notesHtml}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  return `<div class="coll-section open" id="coll-workflow">
+    <div class="coll-header" data-coll="coll-workflow">
+      <span class="coll-icon">📋</span>
+      <span class="coll-title">Workflow</span>
+      <span class="coll-count">${count} event${count !== 1 ? 's' : ''}</span>
+      <span class="coll-chevron">▼</span>
+    </div>
+    <div class="coll-body">${body}</div>
+  </div>`;
+}
+
+function buildSecuritySection(bid) {
+  const raw  = (securityData && securityData.deposits && securityData.deposits[bid.bid_number]) || [];
+  const deps = [...raw].sort((a, b) => {
+    const da = parseDDMMYYYY(a.due_date), db = parseDDMMYYYY(b.due_date);
+    if (!da && !db) return 0; if (!da) return 1; if (!db) return -1;
+    return da - db;
+  });
+
+  const count = deps.length;
+  const now   = Date.now();
+
+  let body;
+  if (count === 0) {
+    body = `<div class="empty-section">No security deposits recorded</div>`;
+  } else {
+    body = deps.map(dep => {
+      const due = parseDDMMYYYY(dep.due_date);
+      let dueClass = '', dueLabel = dep.due_date || '';
+      if (due) {
+        const days = (due - now) / 86_400_000;
+        dueClass = days < 0 ? 'due-past' : days < 30 ? 'due-soon' : 'due-ok';
+      }
+      const dueHtml = dueLabel
+        ? `<span class="${dueClass}">Due: ${esc(dueLabel)}</span>`
+        : '';
+      const amount = dep.amount != null
+        ? `₹${Number(dep.amount).toLocaleString('en-IN')}`
+        : '—';
+      const metaParts = [
+        dep.bank ? esc(dep.bank) : null,
+        dep.instrument_no ? `#${esc(dep.instrument_no)}` : null,
+        dueHtml || null,
+        dep.class ? `(${esc(dep.class)})` : null,
+      ].filter(Boolean);
+
+      return `<div class="deposit-row">
+        <div class="deposit-top">
+          <span class="dep-type-tag">${esc(dep.deposit_type)}</span>
+          <span class="dep-amount">${esc(amount)}</span>
+        </div>
+        <div class="dep-meta">${metaParts.join(' · ')}</div>
+      </div>`;
+    }).join('');
+  }
+
+  return `<div class="coll-section open" id="coll-security">
+    <div class="coll-header" data-coll="coll-security">
+      <span class="coll-icon">🔒</span>
+      <span class="coll-title">Security Deposits</span>
+      <span class="coll-count">${count} deposit${count !== 1 ? 's' : ''}</span>
+      <span class="coll-chevron">▼</span>
+    </div>
+    <div class="coll-body">${body}</div>
+  </div>`;
+}
+
+// ── Wire detail event listeners ────────────────────────────────────────
+function wireDetailListeners(bid) {
+  // Collapsible section headers
+  document.querySelectorAll('#detail-body .coll-header').forEach(hdr => {
+    hdr.addEventListener('click', () => {
+      const id = hdr.dataset.coll;
+      if (id) document.getElementById(id).classList.toggle('open');
+    });
+  });
+
+  // Open costing file button
+  const btn = document.getElementById('btn-open-costing');
+  if (!btn || btn.disabled) return;
+
+  btn.addEventListener('click', async () => {
+    const filename = btn.dataset.filename;
+    if (!filename) return;
+
+    btn.disabled = true;
+    const origHtml = btn.innerHTML;
+    btn.innerHTML = '⏳&nbsp; Searching Drive…';
+
+    try {
+      const fileId = await findCostingFileId(filename);
+      if (fileId) {
+        window.open(`https://drive.google.com/file/d/${fileId}/view`, '_blank');
+      } else {
+        showToast('File not found in Google Drive');
+      }
+    } catch (err) {
+      if (err.code === 401) {
+        showToast('Session expired — please sign in again');
+        accessToken = null;
+        show('screen-signin');
+      } else {
+        showToast('Error: ' + err.message);
+      }
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+    }
+  });
+}
+
+// ── Toast ─────────────────────────────────────────────────────────────
+let toastTimer = null;
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('visible');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('visible'), 2800);
+}
+
+// ── Error screen ──────────────────────────────────────────────────────
+function showError(msg) {
+  document.getElementById('error-msg').textContent = msg;
+  show('screen-error');
+}
+
+document.getElementById('btn-retry').addEventListener('click', () => {
+  accessToken     = null;
+  gemFolderId     = null;
+  dataFolderId    = null;
+  costingFolderId = undefined;
+  document.getElementById('auth-error').hidden = true;
+  show('screen-signin');
+});
+
+// ── OAuth / Sign-in ───────────────────────────────────────────────────
+function initTokenClient() {
+  if (tokenClient) return;
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_CLIENT_ID,
+    scope:     'https://www.googleapis.com/auth/drive.readonly',
+    callback:  async (response) => {
+      if (response.error) {
+        const errTitle = document.getElementById('auth-error-title');
+        const errBox   = document.getElementById('auth-error');
+        if (response.error === 'access_denied') {
+          errTitle.textContent = 'This Google account is not authorized.';
+        } else if (response.error === 'popup_closed_by_user') {
+          // User dismissed — stay silent, just show sign-in screen
+          errBox.hidden = true;
+          show('screen-signin');
+          return;
+        } else {
+          errTitle.textContent = 'Sign-in failed: ' + (response.error_description || response.error);
+        }
+        errBox.hidden = false;
+        show('screen-signin');
+        return;
+      }
+      // Successful sign-in — clear any previous auth error
+      document.getElementById('auth-error').hidden = true;
+      accessToken = response.access_token;
+      tokenExpiry = Date.now() + ((response.expires_in || 3600) * 1000);
+      show('screen-loading');
+      try {
+        await loadData();
+      } catch (err) {
+        showError(err.message || 'Failed to load data from Google Drive.');
+      }
+    }
+  });
+}
+
+document.getElementById('btn-signin').addEventListener('click', () => {
+  if (!window.google || !google.accounts || !google.accounts.oauth2) {
+    showError('Google Sign-In library is still loading. Please wait a moment and try again.');
+    return;
+  }
+  initTokenClient();
+  tokenClient.requestAccessToken({ prompt: 'select_account' });
+});
+
+window.addEventListener('load', () => {
+  if (window.google && google.accounts && google.accounts.oauth2) initTokenClient();
+});
+</script>
+</body>
+</html>
