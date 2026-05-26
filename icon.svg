@@ -1,23 +1,44 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="108" fill="#0d1117"/>
-  <!-- Blue accent bar at top -->
-  <rect x="0" y="0" width="512" height="8" rx="4" fill="#58a6ff"/>
-  <!-- GEM text -->
-  <text x="256" y="242"
+  <!--
+    Maskable icon — full-bleed background, all content within the
+    central 80% safe zone (x/y 52–460). No baked-in rounded corners;
+    the OS applies its own shape (circle / squircle / rounded square).
+  -->
+
+  <!-- Full-bleed background — covers every pixel so no gaps appear
+       when the OS clips to its preferred shape -->
+  <rect width="512" height="512" fill="#161b22"/>
+
+  <!-- Subtle radial glow for depth -->
+  <defs>
+    <radialGradient id="glow" cx="50%" cy="46%" r="44%">
+      <stop offset="0%" stop-color="#1c2a3e"/>
+      <stop offset="100%" stop-color="#161b22"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#glow)"/>
+
+  <!-- Accent bar — inside safe zone (y ≥ 52) -->
+  <rect x="80" y="96" width="352" height="6" rx="3" fill="#58a6ff" opacity="0.55"/>
+
+  <!-- GEM — centred, within safe zone -->
+  <text x="256" y="295"
     text-anchor="middle"
     font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif"
     font-weight="800"
-    font-size="188"
-    letter-spacing="-4"
+    font-size="196"
+    letter-spacing="-5"
     fill="#58a6ff">GEM</text>
-  <!-- Mobile label -->
-  <text x="256" y="330"
+
+  <!-- MOBILE label -->
+  <text x="256" y="370"
     text-anchor="middle"
     font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif"
     font-weight="400"
-    font-size="72"
-    letter-spacing="14"
+    font-size="66"
+    letter-spacing="15"
     fill="#8b949e">MOBILE</text>
-  <!-- Subtle bottom line -->
-  <rect x="136" y="374" width="240" height="2" rx="1" fill="#30363d"/>
+
+  <!-- Hairline separator — inside safe zone (y ≤ 460) -->
+  <rect x="156" y="408" width="200" height="2" rx="1" fill="#30363d"/>
 </svg>
