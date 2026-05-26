@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#0d1117">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon.svg">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="GEM Mobile">
   <title>GEM Mobile</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -360,6 +365,34 @@
     }
     .btn-retry:active { opacity: 0.85; }
 
+    /* ── Auth error (sign-in screen) ─────────── */
+    #auth-error {
+      margin-bottom: 1.75rem;
+      width: 100%;
+      max-width: 280px;
+    }
+
+    .auth-error-box {
+      background: rgba(248,81,73,0.1);
+      border: 1px solid rgba(248,81,73,0.3);
+      border-radius: 10px;
+      padding: 12px 16px;
+      text-align: left;
+    }
+
+    .auth-error-title {
+      color: var(--red);
+      font-size: 0.875rem;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .auth-error-hint {
+      color: var(--text2);
+      font-size: 0.8125rem;
+      line-height: 1.45;
+    }
+
     /* ── Toast ────────────────────────────────── */
     #toast {
       position: fixed;
@@ -383,6 +416,294 @@
       text-overflow: ellipsis;
     }
     #toast.visible { opacity: 1; }
+
+    /* ── Detail screen ────────────────────────── */
+    #screen-detail {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+    }
+
+    .detail-header {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 14px 11px 8px;
+      padding-top: max(11px, env(safe-area-inset-top));
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .btn-back {
+      background: none;
+      border: none;
+      color: var(--accent);
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .btn-back:active { opacity: 0.6; }
+
+    .detail-header-bn {
+      flex: 1;
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .detail-body {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+
+    /* ── Detail field rows ─────────────────────── */
+    .detail-fields {
+      padding: 4px 16px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .field-row {
+      display: flex;
+      gap: 12px;
+      padding: 9px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: flex-start;
+    }
+    .field-row:last-child { border-bottom: none; }
+
+    .field-label {
+      flex-shrink: 0;
+      width: 72px;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text2);
+      padding-top: 2px;
+    }
+
+    .field-value {
+      flex: 1;
+      font-size: 0.9375rem;
+      color: var(--text);
+      word-break: break-word;
+      line-height: 1.4;
+    }
+
+    /* ── Detail sections ────────────────────────── */
+    .detail-section {
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-label {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text2);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .costing-ts {
+      font-size: 0.8125rem;
+      color: var(--text2);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+    .costing-ts strong { color: var(--text); font-weight: 500; }
+
+    .btn-open-drive {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      color: var(--text);
+      border-radius: 10px;
+      padding: 13px 16px;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      min-height: 50px;
+      transition: border-color 0.12s, opacity 0.15s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-open-drive:active  { opacity: 0.7; }
+    .btn-open-drive:disabled { opacity: 0.4; cursor: default; }
+
+    .costing-none {
+      font-size: 0.875rem;
+      color: var(--text2);
+      font-style: italic;
+    }
+
+    /* ── Collapsible sections ───────────────────── */
+    .coll-section {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .coll-header {
+      display: flex;
+      align-items: center;
+      padding: 14px 16px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      min-height: 50px;
+      gap: 6px;
+    }
+    .coll-header:active { background: var(--surface2); }
+
+    .coll-icon  { font-size: 0.9375rem; flex-shrink: 0; }
+
+    .coll-title {
+      flex: 1;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: var(--text2);
+    }
+
+    .coll-count {
+      font-size: 0.75rem;
+      color: var(--text2);
+      margin-right: 4px;
+    }
+
+    .coll-chevron {
+      color: var(--text2);
+      font-size: 0.6875rem;
+      transition: transform 0.18s;
+      display: inline-block;
+    }
+    .coll-section.open .coll-chevron { transform: rotate(180deg); }
+
+    .coll-body {
+      display: none;
+      padding: 0 16px 12px;
+    }
+    .coll-section.open .coll-body { display: block; }
+
+    .empty-section {
+      font-size: 0.875rem;
+      color: var(--text2);
+      font-style: italic;
+      padding: 6px 0 2px;
+    }
+
+    /* ── Workflow events ────────────────────────── */
+    .event-row {
+      display: flex;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: flex-start;
+    }
+    .event-row:last-child { border-bottom: none; }
+
+    .event-icon { font-size: 1rem; flex-shrink: 0; line-height: 1.5; }
+
+    .event-content { flex: 1; min-width: 0; }
+
+    .event-type {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+
+    .event-sub {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      flex-wrap: wrap;
+      font-size: 0.8125rem;
+      color: var(--text2);
+    }
+
+    .ev-status-pill {
+      font-size: 0.6875rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      padding: 1px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+    }
+
+    .ev-reminder { font-size: 0.75rem; }
+
+    .event-notes {
+      font-size: 0.8125rem;
+      color: var(--text2);
+      margin-top: 4px;
+      word-break: break-word;
+      line-height: 1.45;
+    }
+
+    /* ── Security deposits ──────────────────────── */
+    .deposit-row {
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .deposit-row:last-child { border-bottom: none; }
+
+    .deposit-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+
+    .dep-type-tag {
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: var(--surface2);
+      color: var(--text2);
+    }
+
+    .dep-amount {
+      font-size: 0.9375rem;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .dep-meta {
+      font-size: 0.8125rem;
+      color: var(--text2);
+      line-height: 1.55;
+    }
+
+    .due-ok   { color: var(--green); }
+    .due-soon { color: var(--amber); }
+    .due-past { color: var(--red);   }
   </style>
 </head>
 <body>
@@ -403,6 +724,13 @@
     </svg>
     Sign in with Google
   </button>
+
+  <div id="auth-error" hidden>
+    <div class="auth-error-box">
+      <div class="auth-error-title" id="auth-error-title">Account not authorized</div>
+      <div class="auth-error-hint">Tap "Sign in with Google" above to try a different account.</div>
+    </div>
+  </div>
 
   <p class="signin-note">Your data stays in your Google Drive. Nothing is stored on this device.</p>
 </div>
@@ -447,6 +775,16 @@
   <div class="footer-bar" id="footer-bar" aria-live="polite"></div>
 </div>
 
+<!-- ── Screen 3: Bid Detail ───────────────────────────────────────── -->
+<div id="screen-detail" hidden>
+  <div class="detail-header">
+    <button class="btn-back" id="btn-back" aria-label="Back to bid list">←</button>
+    <span class="detail-header-bn" id="detail-bn"></span>
+    <span class="stage-badge" id="detail-stage-badge"></span>
+  </div>
+  <div class="detail-body" id="detail-body"></div>
+</div>
+
 <!-- ── Screen: Error ───────────────────────────────────────────────── -->
 <div id="screen-error" hidden>
   <div class="error-icon" aria-hidden="true">⚠️</div>
@@ -479,17 +817,26 @@ let tokenClient  = null;
 
 let bids         = [];       // array of bid objects from bids.json
 let manifestData = null;     // manifest.json contents
+let workflowData = null;     // workflow.json contents
+let securityData = null;     // security.json contents
 
 // Cached Drive IDs (permanent for the session)
-let gemFolderId  = null;     // GEM-Mobile folder
-let dataFolderId = null;     // GEM-Mobile/data subfolder
+let gemFolderId    = null;       // GEM-Mobile folder
+let dataFolderId   = null;       // GEM-Mobile/data subfolder
+let costingFolderId = undefined; // GEM-Mobile/costing subfolder; undefined = not yet fetched
+
+const costingFileIds = {};   // filename → Drive fileId cache
 
 // Filter state
 let activeStage  = 'ALL';
 let searchQuery  = '';
 
+// Detail navigation state
+let listScrollPos = 0;
+let currentBid    = null;
+
 // ── Screen management ─────────────────────────────────────────────────
-const SCREENS = ['screen-signin', 'screen-loading', 'screen-list', 'screen-error'];
+const SCREENS = ['screen-signin', 'screen-loading', 'screen-list', 'screen-detail', 'screen-error'];
 
 function show(id) {
   SCREENS.forEach(s => { document.getElementById(s).hidden = (s !== id); });
@@ -509,7 +856,6 @@ function esc(s) {
 const MONTHS_SHORT = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
 function parseDDMMYYYY(str) {
-  // Accepts "DD-MM-YYYY" or "DD-MM-YYYY HH:MM"
   if (!str) return null;
   const parts = str.split(' ')[0].split('-');
   if (parts.length !== 3) return null;
@@ -521,6 +867,13 @@ function formatShortDate(str) {
   const d = parseDDMMYYYY(str);
   if (!d) return '?';
   return `${d.getDate()}-${MONTHS_SHORT[d.getMonth()]}`;
+}
+
+function formatDisplayDate(str) {
+  if (!str) return '—';
+  const d = parseDDMMYYYY(str);
+  if (!d) return str;
+  return `${d.getDate()}-${MONTHS_SHORT[d.getMonth()]}-${d.getFullYear()}`;
 }
 
 function daysSince(str) {
@@ -538,7 +891,6 @@ const STAGE_LABELS = {
   'CLOSED':                 'Closed',
 };
 
-// bg / text pairs for stage badges
 const STAGE_COLORS = {
   'QUOTED':                 ['#0d2448', '#58a6ff'],
   'TECHNICAL EVALUATION':   ['#2e1c06', '#e3a726'],
@@ -553,7 +905,7 @@ function stageBadgeStyle(s) {
   return `background:${bg};color:${col}`;
 }
 
-// ── Costing indicator ─────────────────────────────────────────────────
+// ── Costing indicator (bid list) ──────────────────────────────────────
 function costingHtml(bid) {
   if (!bid.has_costing) {
     return `<span class="cost-none">No costing file</span>`;
@@ -603,7 +955,6 @@ async function getGemFolderId() {
 async function getDataFolderId() {
   if (dataFolderId) return dataFolderId;
   const pid = await getGemFolderId();
-  // Look for a "data" subfolder
   const q = `name='data' and '${pid}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
   const res = await driveGet(`${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive`);
   dataFolderId = (res.files && res.files.length > 0) ? res.files[0].id : pid;
@@ -625,6 +976,28 @@ async function readJsonFromDrive(filename) {
   return driveGetMedia(fileId);
 }
 
+// ── Costing file Drive lookup ─────────────────────────────────────────
+async function getCostingFolderId() {
+  if (costingFolderId !== undefined) return costingFolderId;
+  const pid = await getGemFolderId();
+  const q = `name='costing' and '${pid}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+  const res = await driveGet(`${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive`);
+  costingFolderId = (res.files && res.files.length > 0) ? res.files[0].id : null;
+  return costingFolderId;
+}
+
+async function findCostingFileId(filename) {
+  if (costingFileIds[filename]) return costingFileIds[filename];
+  const parentId = await getCostingFolderId();
+  const q = parentId
+    ? `name='${filename}' and '${parentId}' in parents and trashed=false`
+    : `name='${filename}' and trashed=false`;
+  const data = await driveGet(`${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive`);
+  const fileId = (data.files && data.files.length > 0) ? data.files[0].id : null;
+  if (fileId) costingFileIds[filename] = fileId;
+  return fileId;
+}
+
 // ── Data loading ──────────────────────────────────────────────────────
 async function loadData() {
   document.getElementById('loading-text').textContent = 'Reading manifest…';
@@ -634,6 +1007,14 @@ async function loadData() {
   const bidsJson = await readJsonFromDrive('bids.json');
   bids = bidsJson.bids || [];
 
+  document.getElementById('loading-text').textContent = 'Loading workflow…';
+  try { workflowData = await readJsonFromDrive('workflow.json'); }
+  catch { workflowData = { events: {} }; }
+
+  document.getElementById('loading-text').textContent = 'Loading security…';
+  try { securityData = await readJsonFromDrive('security.json'); }
+  catch { securityData = { deposits: {} }; }
+
   renderAll();
   show('screen-list');
 }
@@ -642,7 +1023,6 @@ async function loadData() {
 function renderChips() {
   const wrap = document.getElementById('chips-wrap');
 
-  // Count by stage
   const counts = {};
   bids.forEach(b => { counts[b.stage] = (counts[b.stage] || 0) + 1; });
 
@@ -703,8 +1083,8 @@ function renderBidList() {
     return;
   }
 
-  list.innerHTML = fb.map(bid => `
-    <div class="bid-card" role="listitem">
+  list.innerHTML = fb.map((bid, i) => `
+    <div class="bid-card" role="listitem" data-idx="${i}">
       <div class="bid-number">${esc(bid.bid_number)}</div>
       <div class="bid-client">${esc(bid.client)}</div>
       <div class="bid-meta">${esc(bid.product)} · ${esc(bid.location)}</div>
@@ -714,6 +1094,10 @@ function renderBidList() {
       </div>
     </div>
   `).join('');
+
+  list.querySelectorAll('.bid-card').forEach((card, i) => {
+    card.addEventListener('click', () => openDetail(fb[i]));
+  });
 }
 
 function renderFooter() {
@@ -759,6 +1143,8 @@ document.getElementById('btn-sync').addEventListener('click', async () => {
     manifestData = await readJsonFromDrive('manifest.json');
     const bidsJson = await readJsonFromDrive('bids.json');
     bids = bidsJson.bids || [];
+    try { workflowData = await readJsonFromDrive('workflow.json'); } catch { workflowData = { events: {} }; }
+    try { securityData = await readJsonFromDrive('security.json'); } catch { securityData = { deposits: {} }; }
     renderAll();
     showToast('Data updated');
   } catch (err) {
@@ -774,6 +1160,234 @@ document.getElementById('btn-sync').addEventListener('click', async () => {
     btn.disabled = false;
   }
 });
+
+// ── Detail screen ─────────────────────────────────────────────────────
+function openDetail(bid) {
+  listScrollPos = document.getElementById('bid-list').scrollTop;
+  currentBid    = bid;
+
+  document.getElementById('detail-bn').textContent = bid.bid_number;
+  const badge = document.getElementById('detail-stage-badge');
+  badge.textContent = stageLabel(bid.stage);
+  badge.setAttribute('style', stageBadgeStyle(bid.stage));
+
+  const body = document.getElementById('detail-body');
+  body.innerHTML = buildDetailHtml(bid);
+  body.scrollTop  = 0;
+
+  wireDetailListeners(bid);
+  show('screen-detail');
+}
+
+document.getElementById('btn-back').addEventListener('click', () => {
+  show('screen-list');
+  requestAnimationFrame(() => {
+    document.getElementById('bid-list').scrollTop = listScrollPos;
+  });
+});
+
+// ── Detail HTML builders ───────────────────────────────────────────────
+function buildDetailHtml(bid) {
+  return buildFieldsSection(bid)
+       + buildCostingSection(bid)
+       + buildWorkflowSection(bid)
+       + buildSecuritySection(bid);
+}
+
+function buildFieldsSection(bid) {
+  const rows = [
+    ['CLIENT',   esc(bid.client   || '—')],
+    ['PRODUCT',  esc(bid.product  || '—')],
+    ['LOCATION', esc(bid.location || '—')],
+    ['COMPANY',  esc(bid.quoted_company || '—')],
+  ];
+  if (bid.stage === 'ORDER') {
+    if (bid.gem_contract_number) rows.push(['CONTRACT', esc(bid.gem_contract_number)]);
+    if (bid.order_date)          rows.push(['ORDER',    esc(formatDisplayDate(bid.order_date))]);
+  }
+  if (bid.quoted_date) rows.push(['QUOTED', esc(formatDisplayDate(bid.quoted_date))]);
+
+  return `<div class="detail-fields">
+    ${rows.map(([lbl, val]) => `
+      <div class="field-row">
+        <span class="field-label">${lbl}</span>
+        <span class="field-value">${val}</span>
+      </div>`).join('')}
+  </div>`;
+}
+
+function buildCostingSection(bid) {
+  let inner;
+  if (!bid.has_costing) {
+    inner = `<div class="costing-none">No costing file linked to this bid.</div>`;
+  } else {
+    const ts = bid.costing_last_backed_up
+      ? `Last backed up: <strong>${esc(bid.costing_last_backed_up)}</strong>`
+      : 'Not yet backed up';
+    const fn = bid.costing_gdrive_filename || '';
+    inner = `
+      <div class="costing-ts">${ts}</div>
+      <button class="btn-open-drive" id="btn-open-costing" data-filename="${esc(fn)}"${fn ? '' : ' disabled'}>
+        📂&nbsp; Open in Google Drive
+      </button>`;
+  }
+  return `<div class="detail-section">
+    <div class="section-label">📄 Costing File</div>
+    ${inner}
+  </div>`;
+}
+
+function buildWorkflowSection(bid) {
+  const raw    = (workflowData && workflowData.events && workflowData.events[bid.bid_number]) || [];
+  const events = [...raw].sort((a, b) => {
+    const da = parseDDMMYYYY(a.event_date), db = parseDDMMYYYY(b.event_date);
+    if (!da && !db) return 0; if (!da) return 1; if (!db) return -1;
+    return db - da;
+  });
+
+  const count = events.length;
+
+  let body;
+  if (count === 0) {
+    body = `<div class="empty-section">No workflow events recorded</div>`;
+  } else {
+    body = events.map(ev => {
+      const icon = ev.status === 'Done' ? '✅' : ev.auto_created ? '🔄' : '🔔';
+      const [sBg, sCol] = ev.status === 'Done'    ? ['#071f10','#3fb950']
+                        : ev.status === 'Pending' ? ['#2a1d06','#d29922']
+                        : ['#21262d','#8b949e'];
+      const pill = `<span class="ev-status-pill" style="background:${sBg};color:${sCol}">${esc(ev.status)}</span>`;
+      const remHtml = (ev.reminder === 'Active')
+        ? `<span class="ev-reminder" style="color:#cba6f7" title="Reminder active">🔔</span>`
+        : '';
+      const notesHtml = ev.notes
+        ? `<div class="event-notes">${esc(ev.notes)}</div>`
+        : '';
+      return `<div class="event-row">
+        <span class="event-icon">${icon}</span>
+        <div class="event-content">
+          <div class="event-type">${esc(ev.event_type)}</div>
+          <div class="event-sub">
+            <span>${esc(ev.event_date || '—')}</span>
+            ${pill}
+            ${remHtml}
+          </div>
+          ${notesHtml}
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  return `<div class="coll-section open" id="coll-workflow">
+    <div class="coll-header" data-coll="coll-workflow">
+      <span class="coll-icon">📋</span>
+      <span class="coll-title">Workflow</span>
+      <span class="coll-count">${count} event${count !== 1 ? 's' : ''}</span>
+      <span class="coll-chevron">▼</span>
+    </div>
+    <div class="coll-body">${body}</div>
+  </div>`;
+}
+
+function buildSecuritySection(bid) {
+  const raw  = (securityData && securityData.deposits && securityData.deposits[bid.bid_number]) || [];
+  const deps = [...raw].sort((a, b) => {
+    const da = parseDDMMYYYY(a.due_date), db = parseDDMMYYYY(b.due_date);
+    if (!da && !db) return 0; if (!da) return 1; if (!db) return -1;
+    return da - db;
+  });
+
+  const count = deps.length;
+  const now   = Date.now();
+
+  let body;
+  if (count === 0) {
+    body = `<div class="empty-section">No security deposits recorded</div>`;
+  } else {
+    body = deps.map(dep => {
+      const due = parseDDMMYYYY(dep.due_date);
+      let dueClass = '', dueLabel = dep.due_date || '';
+      if (due) {
+        const days = (due - now) / 86_400_000;
+        dueClass = days < 0 ? 'due-past' : days < 30 ? 'due-soon' : 'due-ok';
+      }
+      const dueHtml = dueLabel
+        ? `<span class="${dueClass}">Due: ${esc(dueLabel)}</span>`
+        : '';
+      const amount = dep.amount != null
+        ? `₹${Number(dep.amount).toLocaleString('en-IN')}`
+        : '—';
+      const metaParts = [
+        dep.bank ? esc(dep.bank) : null,
+        dep.instrument_no ? `#${esc(dep.instrument_no)}` : null,
+        dueHtml || null,
+        dep.class ? `(${esc(dep.class)})` : null,
+      ].filter(Boolean);
+
+      return `<div class="deposit-row">
+        <div class="deposit-top">
+          <span class="dep-type-tag">${esc(dep.deposit_type)}</span>
+          <span class="dep-amount">${esc(amount)}</span>
+        </div>
+        <div class="dep-meta">${metaParts.join(' · ')}</div>
+      </div>`;
+    }).join('');
+  }
+
+  return `<div class="coll-section open" id="coll-security">
+    <div class="coll-header" data-coll="coll-security">
+      <span class="coll-icon">🔒</span>
+      <span class="coll-title">Security Deposits</span>
+      <span class="coll-count">${count} deposit${count !== 1 ? 's' : ''}</span>
+      <span class="coll-chevron">▼</span>
+    </div>
+    <div class="coll-body">${body}</div>
+  </div>`;
+}
+
+// ── Wire detail event listeners ────────────────────────────────────────
+function wireDetailListeners(bid) {
+  // Collapsible section headers
+  document.querySelectorAll('#detail-body .coll-header').forEach(hdr => {
+    hdr.addEventListener('click', () => {
+      const id = hdr.dataset.coll;
+      if (id) document.getElementById(id).classList.toggle('open');
+    });
+  });
+
+  // Open costing file button
+  const btn = document.getElementById('btn-open-costing');
+  if (!btn || btn.disabled) return;
+
+  btn.addEventListener('click', async () => {
+    const filename = btn.dataset.filename;
+    if (!filename) return;
+
+    btn.disabled = true;
+    const origHtml = btn.innerHTML;
+    btn.innerHTML = '⏳&nbsp; Searching Drive…';
+
+    try {
+      const fileId = await findCostingFileId(filename);
+      if (fileId) {
+        window.open(`https://drive.google.com/file/d/${fileId}/view`, '_blank');
+      } else {
+        showToast('File not found in Google Drive');
+      }
+    } catch (err) {
+      if (err.code === 401) {
+        showToast('Session expired — please sign in again');
+        accessToken = null;
+        show('screen-signin');
+      } else {
+        showToast('Error: ' + err.message);
+      }
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = origHtml;
+    }
+  });
+}
 
 // ── Toast ─────────────────────────────────────────────────────────────
 let toastTimer = null;
@@ -793,9 +1407,11 @@ function showError(msg) {
 }
 
 document.getElementById('btn-retry').addEventListener('click', () => {
-  accessToken    = null;
-  gemFolderId    = null;
-  dataFolderId   = null;
+  accessToken     = null;
+  gemFolderId     = null;
+  dataFolderId    = null;
+  costingFolderId = undefined;
+  document.getElementById('auth-error').hidden = true;
   show('screen-signin');
 });
 
@@ -807,11 +1423,24 @@ function initTokenClient() {
     scope:     'https://www.googleapis.com/auth/drive.readonly',
     callback:  async (response) => {
       if (response.error) {
-        const msg = response.error_description || response.error;
-        if (msg !== 'access_denied') showError('Sign-in failed: ' + msg);
+        const errTitle = document.getElementById('auth-error-title');
+        const errBox   = document.getElementById('auth-error');
+        if (response.error === 'access_denied') {
+          errTitle.textContent = 'This Google account is not authorized.';
+        } else if (response.error === 'popup_closed_by_user') {
+          // User dismissed — stay silent, just show sign-in screen
+          errBox.hidden = true;
+          show('screen-signin');
+          return;
+        } else {
+          errTitle.textContent = 'Sign-in failed: ' + (response.error_description || response.error);
+        }
+        errBox.hidden = false;
         show('screen-signin');
         return;
       }
+      // Successful sign-in — clear any previous auth error
+      document.getElementById('auth-error').hidden = true;
       accessToken = response.access_token;
       tokenExpiry = Date.now() + ((response.expires_in || 3600) * 1000);
       show('screen-loading');
@@ -833,8 +1462,6 @@ document.getElementById('btn-signin').addEventListener('click', () => {
   tokenClient.requestAccessToken({ prompt: 'select_account' });
 });
 
-// Pre-initialise once the GSI library fires its own load event
-// (library calls google.accounts.id.initialize automatically — we hook after that)
 window.addEventListener('load', () => {
   if (window.google && google.accounts && google.accounts.oauth2) initTokenClient();
 });
