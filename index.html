@@ -368,6 +368,12 @@
     .cost-warn { font-size: 0.75rem; color: var(--amber); }
     .cost-none { font-size: 0.75rem; color: var(--text2); }
 
+    /* ── 3-state costing folder icon ─────────────────────────────────── */
+    .cost-ic { font-size: 0.875rem; padding: 1px 5px; border-radius: 4px; display: inline-block; cursor: default; line-height: 1.5; }
+    .cost-ic-ok    { background: rgba(63,185,80,0.1);  border: 1px solid rgba(63,185,80,0.28); }
+    .cost-ic-stale { background: rgba(210,153,34,0.12); border: 1px solid rgba(210,153,34,0.35); }
+    .cost-ic-miss  { background: rgba(248,81,73,0.1);  border: 1px solid rgba(248,81,73,0.3);  }
+
     /* ── Footer ───────────────────────────────── */
     .footer-bar {
       flex-shrink: 0;
@@ -779,7 +785,8 @@
     .filter-pill.te-nq.active   { background: rgba(248,81,73,0.12);  border-color: var(--red);   color: var(--red);   }
     .filter-pill.fe-l1.active   { background: rgba(63,185,80,0.12);  border-color: var(--green); color: var(--green); }
     .filter-pill.fe-nl1.active  { background: rgba(248,81,73,0.12);  border-color: var(--red);   color: var(--red);   }
-    .filter-pill.nongem.active  { background: rgba(88,166,255,0.12); border-color: var(--accent); color: var(--accent); }
+    .filter-pill.nongem.active     { background: rgba(88,166,255,0.12); border-color: var(--accent); color: var(--accent); }
+    .filter-pill.hascosting.active { background: rgba(63,185,80,0.1);  border-color: var(--green);  color: var(--green); }
     .filter-pill-count { font-size: 0.6875rem; opacity: 0.7; }
 
     /* ── Sort + Layout controls bar ─────────────── */
@@ -907,13 +914,31 @@
     /* ── bid-main wrapper for layout modes ───────── */
     .bid-main { display: contents; }
 
-    /* ── Compact layout mode ─────────────────────── */
-    .bid-list.layout-compact .bid-card  { padding: 10px 14px; }
-    .bid-list.layout-compact .bid-number { font-size: 0.875rem; margin-bottom: 2px; }
-    .bid-list.layout-compact .bid-client { font-size: 0.8125rem; margin-bottom: 1px; }
-    .bid-list.layout-compact .bid-meta   { font-size: 0.75rem;   margin-bottom: 5px; }
-    .bid-list.layout-compact .te-fe-badges { margin-bottom: 4px; }
-    .bid-list.layout-compact .dep-pills  { margin-top: 3px; }
+    /* ── Compact grid layout (2-col, 4 rows) ────────────────────────── */
+    .bid-list.layout-compact {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 8px;
+      align-items: start;
+    }
+    .bid-list.layout-compact .bid-card {
+      padding: 10px 11px;
+      border: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface2);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .bid-list.layout-compact .bid-main     { display: flex; flex-direction: column; }
+    .bid-list.layout-compact .bid-number   { font-size: 0.8125rem; font-weight: 600; margin-bottom: 0; }
+    .bid-list.layout-compact .bid-client   { font-size: 0.6875rem; color: var(--text2); margin-bottom: 0; }
+    .bid-list.layout-compact .bid-meta     { display: none; }
+    .bid-list.layout-compact .te-fe-badges { margin-bottom: 0; flex-wrap: wrap; }
+    .bid-list.layout-compact .dep-pills    { display: none; }
+    .bid-list.layout-compact .bid-row      { margin-top: 2px; flex-wrap: nowrap; overflow: hidden; }
 
     /* ── Dense layout mode ───────────────────────── */
     .bid-list.layout-dense .bid-card {
@@ -1535,6 +1560,8 @@ const GDRIVE_FOLDER_NAME = 'GEM-Mobile';
 
 const DRIVE_API          = 'https://www.googleapis.com/drive/v3';
 const COSTING_STALE_DAYS = 7;
+const CACHE_KEY          = 'gem_cache';
+const CACHE_VER          = 1;
 
 // ── App state ──────────────────────────────────────────────────────────
 let accessToken  = null;
@@ -1558,9 +1585,10 @@ let activeStage  = 'ALL';
 let searchQuery  = '';
 
 // TE/FE/Non-GEM filter state
-let activeTeFilters = new Set();
-let activeFeFilters = new Set();
-let activeNonGem    = false;
+let activeTeFilters  = new Set();
+let activeFeFilters  = new Set();
+let activeNonGem     = false;
+let activeHasCosting = false;
 
 // Sort state
 let sortKey = localStorage.getItem('gem_sort_key') || 'bid_number';
@@ -1570,13 +1598,42 @@ let sortDir = localStorage.getItem('gem_sort_dir') || 'desc';
 let layoutMode = localStorage.getItem('gem_layout_mode') || 'default';
 
 // Detail navigation state
-let listScrollPos = 0;
-let currentBid    = null;
+let listScrollPos       = 0;
+let currentBid          = null;
+let isBackgroundRefresh = false;
 
 // ── Settings state (persisted to localStorage) ─────────────────────────
 let costingStaleDays = parseInt(localStorage.getItem('gem_costing_stale_days') || '7', 10);
 let showClosed       = localStorage.getItem('gem_show_closed') === 'true';
 let dateFormat       = localStorage.getItem('gem_date_format') || 'dmy';
+
+// ── localStorage cache ────────────────────────────────────────────────
+function saveCache() {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({
+      v: CACHE_VER,
+      ts: Date.now(),
+      manifestData,
+      bids,
+      workflowData,
+      securityData,
+    }));
+  } catch(e) { /* quota exceeded — ignore */ }
+}
+
+function loadCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return false;
+    const c = JSON.parse(raw);
+    if (c.v !== CACHE_VER) return false;
+    manifestData = c.manifestData || null;
+    bids         = c.bids        || [];
+    workflowData = c.workflowData || { events: {} };
+    securityData = c.securityData || { deposits: {} };
+    return true;
+  } catch(e) { return false; }
+}
 
 // ── Screen management ─────────────────────────────────────────────────
 const SCREENS = ['screen-signin', 'screen-loading', 'screen-list', 'screen-detail', 'screen-error'];
@@ -1673,6 +1730,21 @@ function costingHtml(bid) {
   return `<span class="cost-ok">Costing: ${label} ✓</span>`;
 }
 
+// ── 3-state costing icon (B2) ─────────────────────────────────────────
+function costingIconHtml(bid) {
+  if (!bid.has_costing) return '';
+  const date = bid.costing_last_backed_up;
+  if (!date) {
+    return `<span class="cost-ic cost-ic-miss" title="Not backed up">📁</span>`;
+  }
+  const days  = daysSince(date);
+  const label = formatShortDate(date);
+  if (days >= costingStaleDays) {
+    return `<span class="cost-ic cost-ic-stale" title="Stale · ${label}">📁</span>`;
+  }
+  return `<span class="cost-ic cost-ic-ok" title="Backed up · ${label}">📁</span>`;
+}
+
 // ── TE/FE badges ─────────────────────────────────────────────────
 function teFeBadgesHtml(bid) {
   const parts = [];
@@ -1725,18 +1797,20 @@ function renderFilterRow() {
   const wrap = document.getElementById('filter-row');
 
   const defs = [
-    { key: 'Qualified',     label: 'TE Qual.',   cls: 'te-qual', type: 'te' },
-    { key: 'Not Qualified', label: 'TE Not Q.',  cls: 'te-nq',   type: 'te' },
-    { key: 'L1',            label: 'FE L1',      cls: 'fe-l1',   type: 'fe' },
-    { key: 'Not L1',        label: 'FE Not L1',  cls: 'fe-nl1',  type: 'fe' },
-    { key: '_nongem',       label: 'Non-GEM',    cls: 'nongem',  type: 'nongem' },
+    { key: 'Qualified',     label: 'TE Qual.',     cls: 'te-qual',     type: 'te' },
+    { key: 'Not Qualified', label: 'TE Not Q.',    cls: 'te-nq',       type: 'te' },
+    { key: 'L1',            label: 'FE L1',        cls: 'fe-l1',       type: 'fe' },
+    { key: 'Not L1',        label: 'FE Not L1',    cls: 'fe-nl1',      type: 'fe' },
+    { key: '_nongem',       label: 'Non-GEM',      cls: 'nongem',      type: 'nongem' },
+    { key: '_hascosting',   label: '📁 Has Costing', cls: 'hascosting', type: 'hascosting' },
   ];
 
   const pills = defs.map(f => {
     let count, active;
-    if (f.type === 'te')     { count = bids.filter(b => b.te_result === f.key).length; active = activeTeFilters.has(f.key); }
-    else if (f.type === 'fe'){ count = bids.filter(b => b.fe_result === f.key).length; active = activeFeFilters.has(f.key); }
-    else                     { count = bids.filter(b => b.is_non_gem).length;           active = activeNonGem; }
+    if (f.type === 'te')          { count = bids.filter(b => b.te_result === f.key).length; active = activeTeFilters.has(f.key); }
+    else if (f.type === 'fe')     { count = bids.filter(b => b.fe_result === f.key).length; active = activeFeFilters.has(f.key); }
+    else if (f.type === 'nongem') { count = bids.filter(b => b.is_non_gem).length;          active = activeNonGem; }
+    else                          { count = bids.filter(b => b.has_costing).length;          active = activeHasCosting; }
     if (count === 0) return '';
     return `<button class="filter-pill ${f.cls}${active ? ' active' : ''}" data-ftype="${f.type}" data-fkey="${esc(f.key)}">${esc(f.label)} <span class="filter-pill-count">${count}</span></button>`;
   }).join('');
@@ -1750,8 +1824,10 @@ function renderFilterRow() {
         activeTeFilters.has(fkey) ? activeTeFilters.delete(fkey) : activeTeFilters.add(fkey);
       } else if (ftype === 'fe') {
         activeFeFilters.has(fkey) ? activeFeFilters.delete(fkey) : activeFeFilters.add(fkey);
-      } else {
+      } else if (ftype === 'nongem') {
         activeNonGem = !activeNonGem;
+      } else {
+        activeHasCosting = !activeHasCosting;
       }
       renderFilterRow();
       renderBidList();
@@ -1903,8 +1979,41 @@ async function loadData() {
   try { securityData = await readJsonFromDrive('security.json'); }
   catch { securityData = { deposits: {} }; }
 
+  saveCache();
   renderAll();
   show('screen-list');
+}
+
+// ── Background refresh (To-Do A) ──────────────────────────────────────
+async function loadDataBackground() {
+  const prevBidsStr = JSON.stringify(bids);
+  try {
+    const newManifest  = await readJsonFromDrive('manifest.json');
+    const newBidsJson  = await readJsonFromDrive('bids.json');
+    const newBids      = newBidsJson.bids || [];
+    let   newWorkflow, newSecurity;
+    try { newWorkflow = await readJsonFromDrive('workflow.json'); } catch { newWorkflow = workflowData || { events: {} }; }
+    try { newSecurity = await readJsonFromDrive('security.json'); } catch { newSecurity = securityData || { deposits: {} }; }
+
+    const changed = JSON.stringify(newBids) !== prevBidsStr;
+    manifestData  = newManifest;
+    bids          = newBids;
+    workflowData  = newWorkflow;
+    securityData  = newSecurity;
+
+    saveCache();
+    if (changed) {
+      renderAll();
+      showToast('↓ Data refreshed');
+    }
+  } catch(err) {
+    if (err.code === 401) {
+      accessToken = null;
+      localStorage.removeItem('gem_token_expiry');
+      // silently let token expire — user will be prompted on next explicit action
+    }
+    // other errors: silent in background mode
+  }
 }
 
 // ── Chips ─────────────────────────────────────────────────────────────
@@ -1972,6 +2081,9 @@ function filteredBids() {
   if (activeNonGem) {
     result = result.filter(b => b.is_non_gem);
   }
+  if (activeHasCosting) {
+    result = result.filter(b => b.has_costing);
+  }
 
   // Sort
   const stageOrder = ['QUOTED','TECHNICAL EVALUATION','FINANCIAL EVALUATION','ORDER','CLOSED'];
@@ -2029,7 +2141,7 @@ function renderBidList() {
       ${depPills}
       <div class="bid-row">
         <span class="stage-badge" style="${stageBadgeStyle(bid.stage)}">${stageLabel(bid.stage)}</span>
-        ${costingHtml(bid)}
+        ${costingIconHtml(bid)}
         ${costBtn}
       </div>
     </div>`;
@@ -2113,6 +2225,7 @@ document.getElementById('btn-sync').addEventListener('click', async () => {
     bids = bidsJson.bids || [];
     try { workflowData = await readJsonFromDrive('workflow.json'); } catch { workflowData = { events: {} }; }
     try { securityData = await readJsonFromDrive('security.json'); } catch { securityData = { deposits: {} }; }
+    saveCache();
     renderAll();
     showToast('Data updated');
   } catch (err) {
@@ -2559,11 +2672,17 @@ function initTokenClient() {
       accessToken = response.access_token;
       tokenExpiry = Date.now() + ((response.expires_in || 3600) * 1000);
       localStorage.setItem('gem_token_expiry', String(tokenExpiry));
-      show('screen-loading');
-      try {
-        await loadData();
-      } catch (err) {
-        showError(err.message || 'Failed to load data from Google Drive.');
+
+      if (isBackgroundRefresh) {
+        isBackgroundRefresh = false;
+        await loadDataBackground();
+      } else {
+        show('screen-loading');
+        try {
+          await loadData();
+        } catch (err) {
+          showError(err.message || 'Failed to load data from Google Drive.');
+        }
       }
     }
   });
@@ -2584,11 +2703,24 @@ window.addEventListener('load', () => {
   }
   if (!window.google || !google.accounts || !google.accounts.oauth2) return;
   initTokenClient();
-  // Silent re-auth if token hasn't expired yet (60s buffer)
+
   const storedExpiry = parseInt(localStorage.getItem('gem_token_expiry') || '0', 10);
-  if (storedExpiry > Date.now() + 60_000) {
-    tokenClient.requestAccessToken({ prompt: '' });
+  const tokenValid   = storedExpiry > Date.now() + 60_000;
+
+  if (tokenValid) {
+    // Try cache-first: show UI instantly, then refresh in background (To-Do A)
+    const hasCached = loadCache();
+    if (hasCached) {
+      renderAll();
+      show('screen-list');
+      isBackgroundRefresh = true;
+      tokenClient.requestAccessToken({ prompt: '' });
+    } else {
+      // Token valid but no cache — show loading screen and fetch fresh
+      tokenClient.requestAccessToken({ prompt: '' });
+    }
   }
+  // If token expired, stay on sign-in screen (user taps the button)
 });
 </script>
 </body>
