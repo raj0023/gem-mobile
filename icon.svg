@@ -1,23 +1,197 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="108" fill="#0d1117"/>
-  <!-- Blue accent bar at top -->
-  <rect x="0" y="0" width="512" height="8" rx="4" fill="#58a6ff"/>
-  <!-- GEM text -->
-  <text x="256" y="242"
-    text-anchor="middle"
-    font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif"
-    font-weight="800"
-    font-size="188"
-    letter-spacing="-4"
-    fill="#58a6ff">GEM</text>
-  <!-- Mobile label -->
-  <text x="256" y="330"
-    text-anchor="middle"
-    font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif"
-    font-weight="400"
-    font-size="72"
-    letter-spacing="14"
-    fill="#8b949e">MOBILE</text>
-  <!-- Subtle bottom line -->
-  <rect x="136" y="374" width="240" height="2" rx="1" fill="#30363d"/>
+  <!--
+    Maskable icon — full-bleed background, all gem content within the
+    central 80% safe zone (x/y 52–460). No baked-in rounded corners.
+    Rainbow brilliant-cut diamond: magenta left, gold top, green right,
+    blue-teal bottom — matching the GEM Dashboard desktop icon (gem.png).
+
+    9-facet layout (all coordinates in userSpaceOnUse):
+      Crown upper: Table (trapezoid) + UL triangle + UR triangle
+      Crown lower: Left quad + Center quad + Right quad
+      Pavilion:    Left triangle + Center triangle + Right triangle
+
+    Key vertices:
+      Table:    (162,100)–(350,100)  top edge
+      Crown inner ring (y=190): IL(205,190) · IR(307,190)
+      Outer crown at y=190:     OL(113,190) · OR(399,190)
+      Girdle (y=292): OGL(58,292) · IGL(190,292) · IGR(322,292) · OGR(454,292)
+      Culet:    (256,452)
+  -->
+  <defs>
+    <!-- Background: deep purple-black, slightly lighter at center -->
+    <radialGradient id="bg" cx="50%" cy="44%" r="65%">
+      <stop offset="0%"   stop-color="#1e0a32"/>
+      <stop offset="100%" stop-color="#04020c"/>
+    </radialGradient>
+
+    <!-- Gem outer glow (blurred silhouette) -->
+    <filter id="gem-glow" x="-22%" y="-22%" width="144%" height="144%">
+      <feGaussianBlur stdDeviation="14" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+
+    <!-- ── FACET GRADIENTS (userSpaceOnUse) ── -->
+
+    <!-- 1. Table: bright gold → amber -->
+    <linearGradient id="g1" x1="256" y1="100" x2="256" y2="190" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#fff070"/>
+      <stop offset="55%"  stop-color="#f0c020"/>
+      <stop offset="100%" stop-color="#b87010"/>
+    </linearGradient>
+
+    <!-- 2. Upper-left crown: hot pink → deep magenta -->
+    <linearGradient id="g2" x1="340" y1="100" x2="115" y2="192" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#ff90d8"/>
+      <stop offset="100%" stop-color="#c00470"/>
+    </linearGradient>
+
+    <!-- 3. Upper-right crown: bright lime green → forest green -->
+    <linearGradient id="g3" x1="170" y1="100" x2="396" y2="192" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#94ffa8"/>
+      <stop offset="100%" stop-color="#00b840"/>
+    </linearGradient>
+
+    <!-- 4. Left lower crown: vivid magenta → deep purple-magenta -->
+    <linearGradient id="g4" x1="295" y1="190" x2="70" y2="292" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#f020b0"/>
+      <stop offset="100%" stop-color="#620058"/>
+    </linearGradient>
+
+    <!-- 5. Center lower crown: orange-gold → deep amber (the center kite) -->
+    <linearGradient id="g5" x1="256" y1="190" x2="256" y2="292" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#ffb830"/>
+      <stop offset="100%" stop-color="#a05800"/>
+    </linearGradient>
+
+    <!-- 6. Right lower crown: vivid green → deep emerald -->
+    <linearGradient id="g6" x1="220" y1="190" x2="442" y2="292" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#10ea60"/>
+      <stop offset="100%" stop-color="#006030"/>
+    </linearGradient>
+
+    <!-- 7. Left pavilion: sky blue → deep navy -->
+    <linearGradient id="g7" x1="124" y1="292" x2="195" y2="452" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#1098f0"/>
+      <stop offset="100%" stop-color="#001870"/>
+    </linearGradient>
+
+    <!-- 8. Center pavilion: royal blue → very deep navy (darkest, most depth) -->
+    <linearGradient id="g8" x1="256" y1="292" x2="256" y2="452" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#2860e0"/>
+      <stop offset="100%" stop-color="#000c48"/>
+    </linearGradient>
+
+    <!-- 9. Right pavilion: cyan-teal → deep teal-navy -->
+    <linearGradient id="g9" x1="388" y1="292" x2="318" y2="452" gradientUnits="userSpaceOnUse">
+      <stop offset="0%"   stop-color="#00c0ea"/>
+      <stop offset="100%" stop-color="#003870"/>
+    </linearGradient>
+  </defs>
+
+  <!-- ══ BACKGROUND ══ -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+
+  <!-- Soft ambient glow behind gem (blurred silhouette) -->
+  <polygon points="162,100 350,100 454,292 256,452 58,292"
+    fill="rgba(210,110,255,0.14)" filter="url(#gem-glow)"/>
+
+  <!-- ══ CROWN — UPPER TIER (y 100→190) ══ -->
+
+  <!-- 1. Table: trapezoid, bright gold -->
+  <polygon points="162,100 350,100 307,190 205,190" fill="url(#g1)"/>
+
+  <!-- 2. Upper-left: triangle, hot magenta-pink -->
+  <polygon points="162,100 113,190 205,190" fill="url(#g2)"/>
+
+  <!-- 3. Upper-right: triangle, lime green -->
+  <polygon points="350,100 307,190 399,190" fill="url(#g3)"/>
+
+  <!-- ══ CROWN — LOWER TIER (y 190→292) ══ -->
+
+  <!-- 4. Left lower crown: quad, deep magenta-purple -->
+  <polygon points="113,190 58,292 190,292 205,190" fill="url(#g4)"/>
+
+  <!-- 5. Center lower crown / kite: quad, orange-amber -->
+  <polygon points="205,190 307,190 322,292 190,292" fill="url(#g5)"/>
+
+  <!-- 6. Right lower crown: quad, vivid deep green -->
+  <polygon points="307,190 399,190 454,292 322,292" fill="url(#g6)"/>
+
+  <!-- ══ PAVILION (y 292→452) ══ -->
+
+  <!-- 7. Left pavilion: triangle, blue -->
+  <polygon points="58,292 190,292 256,452" fill="url(#g7)"/>
+
+  <!-- 8. Center pavilion: triangle, deep navy (deepest) -->
+  <polygon points="190,292 322,292 256,452" fill="url(#g8)"/>
+
+  <!-- 9. Right pavilion: triangle, cyan-teal -->
+  <polygon points="322,292 454,292 256,452" fill="url(#g9)"/>
+
+  <!-- ══ FACET DIVIDER LINES (lighter strokes, show cut faces) ══ -->
+
+  <!-- Outer gem silhouette -->
+  <polygon points="162,100 350,100 454,292 256,452 58,292"
+    fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1.8" stroke-linejoin="round"/>
+
+  <!-- Girdle line (crown/pavilion boundary) -->
+  <line x1="58" y1="292" x2="454" y2="292"
+    stroke="rgba(255,255,255,0.42)" stroke-width="1.6"/>
+
+  <!-- Table bottom edge (divides table from crown) -->
+  <line x1="205" y1="190" x2="307" y2="190"
+    stroke="rgba(255,255,255,0.55)" stroke-width="1.5"/>
+
+  <!-- Table left and right sides (table corners → inner crown ring) -->
+  <line x1="162" y1="100" x2="205" y2="190"
+    stroke="rgba(255,255,255,0.42)" stroke-width="1.3"/>
+  <line x1="350" y1="100" x2="307" y2="190"
+    stroke="rgba(255,255,255,0.42)" stroke-width="1.3"/>
+
+  <!-- Outer crown upper edges (table corners → outer crown ring) -->
+  <line x1="162" y1="100" x2="113" y2="190"
+    stroke="rgba(255,255,255,0.30)" stroke-width="1.1"/>
+  <line x1="350" y1="100" x2="399" y2="190"
+    stroke="rgba(255,255,255,0.30)" stroke-width="1.1"/>
+
+  <!-- Outer crown at y=190 (inner ring to outer ring, horizontal) -->
+  <line x1="113" y1="190" x2="205" y2="190"
+    stroke="rgba(255,255,255,0.28)" stroke-width="1.0"/>
+  <line x1="307" y1="190" x2="399" y2="190"
+    stroke="rgba(255,255,255,0.28)" stroke-width="1.0"/>
+
+  <!-- Crown lower outer diagonals (outer ring → girdle) -->
+  <line x1="113" y1="190" x2="58" y2="292"
+    stroke="rgba(255,255,255,0.22)" stroke-width="1.0"/>
+  <line x1="399" y1="190" x2="454" y2="292"
+    stroke="rgba(255,255,255,0.22)" stroke-width="1.0"/>
+
+  <!-- Crown lower inner diagonals (inner ring → inner girdle) -->
+  <line x1="205" y1="190" x2="190" y2="292"
+    stroke="rgba(255,255,255,0.36)" stroke-width="1.2"/>
+  <line x1="307" y1="190" x2="322" y2="292"
+    stroke="rgba(255,255,255,0.36)" stroke-width="1.2"/>
+
+  <!-- Pavilion dividers (inner girdle → culet) -->
+  <line x1="190" y1="292" x2="256" y2="452"
+    stroke="rgba(255,255,255,0.33)" stroke-width="1.2"/>
+  <line x1="322" y1="292" x2="256" y2="452"
+    stroke="rgba(255,255,255,0.33)" stroke-width="1.2"/>
+
+  <!-- ══ HIGHLIGHTS (sparkle and depth) ══ -->
+
+  <!-- Table shimmer: soft white ellipse centered on table -->
+  <ellipse cx="256" cy="132" rx="55" ry="22" fill="rgba(255,255,255,0.17)"/>
+
+  <!-- Upper-right crown sparkle line (lit face) -->
+  <line x1="366" y1="116" x2="408" y2="172"
+    stroke="rgba(255,255,255,0.32)" stroke-width="2.0" stroke-linecap="round"/>
+
+  <!-- Upper-left subtle pink-tinted reflection -->
+  <line x1="146" y1="116" x2="106" y2="172"
+    stroke="rgba(255,210,240,0.22)" stroke-width="1.6" stroke-linecap="round"/>
+
+  <!-- Right pavilion edge highlight (teal shimmer) -->
+  <line x1="388" y1="300" x2="344" y2="390"
+    stroke="rgba(180,255,255,0.18)" stroke-width="1.4" stroke-linecap="round"/>
 </svg>
