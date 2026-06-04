@@ -5,11 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="theme-color" content="#0d1117">
   <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icon.svg">
+  <link rel="apple-touch-icon" sizes="192x192" href="icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="GEM Mobile">
   <title>GEM Mobile</title>
+  <!-- Apply saved theme & font size before paint to avoid flash -->
+  <script>
+  (function(){
+    var t=localStorage.getItem('gem_theme')||'default';
+    var f=localStorage.getItem('gem_font_size')||'md';
+    if(t!=='default') document.documentElement.setAttribute('data-theme',t);
+    if(f!=='md') document.documentElement.setAttribute('data-font',f);
+  })();
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -25,6 +34,44 @@
       --amber:    #d29922;
       --red:      #f85149;
     }
+
+    /* ── Themes ───────────────────────────────────────────────────────── */
+    html[data-theme="hc"] {
+      --bg:       #f8f9fa;
+      --surface:  #ffffff;
+      --surface2: #e9ecef;
+      --border:   #ced4da;
+      --text:     #000000;
+      --text2:    #495057;
+      --accent:   #0052cc;
+      --green:    #15803d;
+      --amber:    #92400e;
+      --red:      #9b1c1c;
+    }
+    html[data-theme="hc"] body { -webkit-font-smoothing: auto; }
+    html[data-theme="hc"] .chip.active { color: #ffffff; }
+    html[data-theme="hc"] .sort-btn.active { color: #ffffff; }
+    html[data-theme="hc"] .layout-btn.active { color: #ffffff; }
+
+    html[data-theme="warm"] {
+      --bg:       #1c1917;
+      --surface:  #292524;
+      --surface2: #3c3330;
+      --border:   #57534e;
+      --text:     #fafaf9;
+      --text2:    #a8a29e;
+      --accent:   #f59e0b;
+      --green:    #4ade80;
+      --amber:    #f59e0b;
+      --red:      #f87171;
+    }
+    html[data-theme="warm"] .chip.active { color: #1c1917; }
+    html[data-theme="warm"] .sort-btn.active { color: #1c1917; }
+    html[data-theme="warm"] .layout-btn.active { color: #1c1917; }
+
+    /* ── Font size ─────────────────────────────────────────────────────── */
+    html[data-font="sm"] { font-size: 14px; }
+    html[data-font="lg"] { font-size: 18px; }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
@@ -48,6 +95,14 @@
       min-height: 100dvh;
       padding: 2rem 1.5rem;
       text-align: center;
+    }
+
+    .signin-logo-img {
+      display: block;
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 0.75rem;
+      object-fit: contain;
     }
 
     .signin-logo {
@@ -313,6 +368,12 @@
     .cost-warn { font-size: 0.75rem; color: var(--amber); }
     .cost-none { font-size: 0.75rem; color: var(--text2); }
 
+    /* ── 3-state costing folder icon ─────────────────────────────────── */
+    .cost-ic       { font-size: 0.9rem; padding: 2px 6px; border-radius: 4px; display: inline-flex; align-items: center; line-height: 1.4; cursor: default; }
+    .cost-ic-ok    { background: rgba(63,185,80,0.2);   border: 1px solid rgba(63,185,80,0.55);  cursor: pointer; }
+    .cost-ic-stale { background: rgba(210,153,34,0.22); border: 1px solid rgba(210,153,34,0.6);  cursor: pointer; }
+    .cost-ic-miss  { background: rgba(248,81,73,0.18);  border: 1px solid rgba(248,81,73,0.5);   cursor: default; }
+
     /* ── Footer ───────────────────────────────── */
     .footer-bar {
       flex-shrink: 0;
@@ -416,6 +477,22 @@
       text-overflow: ellipsis;
     }
     #toast.visible { opacity: 1; }
+    #toast.toast-update {
+      background: var(--green);
+      color: #0d1117;
+      border-color: rgba(63,185,80,0.6);
+      cursor: pointer;
+      pointer-events: auto;
+      font-weight: 600;
+    }
+    #toast.toast-html-update {
+      background: var(--accent);
+      color: #0d1117;
+      border-color: rgba(88,166,255,0.6);
+      cursor: pointer;
+      pointer-events: auto;
+      font-weight: 600;
+    }
 
     /* ── Detail screen ────────────────────────── */
     #screen-detail {
@@ -437,23 +514,6 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .btn-back {
-      background: none;
-      border: none;
-      color: var(--accent);
-      font-size: 1.5rem;
-      cursor: pointer;
-      padding: 4px 8px;
-      min-width: 44px;
-      min-height: 44px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      -webkit-tap-highlight-color: transparent;
-      flex-shrink: 0;
-      line-height: 1;
-    }
-    .btn-back:active { opacity: 0.6; }
 
     .detail-header-bn {
       flex: 1;
@@ -704,12 +764,691 @@
     .due-ok   { color: var(--green); }
     .due-soon { color: var(--amber); }
     .due-past { color: var(--red);   }
+
+    /* ── Filter row (TE/FE/Non-GEM pills) ────────── */
+    .filter-row {
+      flex-shrink: 0;
+      padding: 6px 14px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      white-space: nowrap;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .filter-row:empty { display: none; }
+    .filter-row::-webkit-scrollbar { display: none; }
+
+    .filter-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 16px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      border: 1.5px solid var(--border);
+      color: var(--text2);
+      background: transparent;
+      transition: all 0.12s;
+      margin-right: 6px;
+      min-height: 28px;
+    }
+    .filter-pill:last-child { margin-right: 0; }
+    .filter-pill.te-qual.active { background: rgba(63,185,80,0.12);  border-color: var(--green); color: var(--green); }
+    .filter-pill.te-nq.active   { background: rgba(248,81,73,0.12);  border-color: var(--red);   color: var(--red);   }
+    .filter-pill.fe-l1.active   { background: rgba(63,185,80,0.12);  border-color: var(--green); color: var(--green); }
+    .filter-pill.fe-nl1.active  { background: rgba(248,81,73,0.12);  border-color: var(--red);   color: var(--red);   }
+    .filter-pill.nongem.active     { background: rgba(88,166,255,0.12); border-color: var(--accent); color: var(--accent); }
+    .filter-pill.hascosting.active { background: rgba(63,185,80,0.1);  border-color: var(--green);  color: var(--green); }
+    .filter-pill-count { font-size: 0.6875rem; opacity: 0.7; }
+
+    /* ── Sort + Layout controls bar ─────────────── */
+    .controls-bar {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .controls-bar::-webkit-scrollbar { display: none; }
+
+    .sort-label { font-size: 0.6875rem; color: var(--text2); font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; flex-shrink: 0; }
+    .controls-sep { width: 1px; height: 18px; background: var(--border); flex-shrink: 0; margin: 0 2px; }
+    .controls-spacer { flex: 1; min-width: 6px; }
+
+    .sort-btn {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--text2);
+      border-radius: 6px;
+      padding: 3px 9px;
+      font-size: 0.6875rem;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      min-height: 28px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      transition: all 0.12s;
+    }
+    .sort-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(88,166,255,0.08); }
+
+    .layout-btn {
+      background: transparent;
+      border: 1.5px solid var(--border);
+      color: var(--text2);
+      border-radius: 6px;
+      padding: 3px 9px;
+      font-size: 0.75rem;
+      font-family: inherit;
+      cursor: pointer;
+      min-height: 28px;
+      flex-shrink: 0;
+      transition: all 0.12s;
+    }
+    .layout-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(88,166,255,0.08); }
+
+    /* ── TE/FE badges on cards ───────────────────── */
+    .te-fe-badges {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-bottom: 7px;
+    }
+
+    .te-badge, .fe-badge {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .te-qual-badge  { background: rgba(63,185,80,0.15);  color: var(--green); }
+    .te-nq-badge    { background: rgba(248,81,73,0.12);  color: var(--red);   }
+    .te-part-badge  { background: rgba(210,153,34,0.15); color: var(--amber); }
+    .fe-l1-badge    { background: rgba(63,185,80,0.15);  color: var(--green); }
+    .fe-nl1-badge   { background: rgba(248,81,73,0.12);  color: var(--red);   }
+    .fe-some-badge  { background: rgba(210,153,34,0.15); color: var(--amber); }
+    .fe-rank-tag    { font-size: 0.625rem; color: var(--text2); }
+
+    /* ── Security deposit pills on cards ─────────── */
+    .dep-pills {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .dep-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.6875rem;
+      font-weight: 500;
+      padding: 2px 7px 2px 5px;
+      border-radius: 10px;
+      border: 1px solid;
+    }
+    .dep-pill-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+    .dep-pill-active   { background: rgba(63,185,80,0.1);  border-color: rgba(63,185,80,0.35);  color: var(--green); }
+    .dep-pill-active .dep-pill-dot { background: var(--green); }
+    .dep-pill-inactive { background: rgba(139,148,158,0.06); border-color: var(--border); color: var(--text2); }
+    .dep-pill-inactive .dep-pill-dot { background: var(--text2); }
+
+    /* ── Costing button on card ───────────────────── */
+    .card-costing-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 0.6875rem;
+      font-weight: 500;
+      color: var(--accent);
+      background: rgba(88,166,255,0.08);
+      border: 1px solid rgba(88,166,255,0.25);
+      border-radius: 8px;
+      padding: 3px 8px;
+      cursor: pointer;
+      font-family: inherit;
+      min-height: 24px;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity 0.12s;
+    }
+    .card-costing-btn:active  { opacity: 0.6; }
+    .card-costing-btn:disabled { opacity: 0.4; cursor: default; }
+
+    /* ── bid-main wrapper for layout modes ───────── */
+    .bid-main { display: contents; }
+
+    /* ── New compact card row layout ─────────────────────────────────── */
+    .card-r1, .card-r2 {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .card-r1 { margin-bottom: 2px; }
+    .card-r2 { margin-bottom: 5px; }
+    .card-bn {
+      font-size: 0.9375rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      letter-spacing: 0.01em;
+      color: var(--text);
+    }
+    .card-cl {
+      font-size: 0.8125rem;
+      color: var(--text);
+      text-align: right;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      min-width: 0;
+    }
+    .card-pr {
+      font-size: 0.75rem;
+      color: var(--text2);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      max-width: 55%;
+    }
+    .card-lo {
+      font-size: 0.75rem;
+      color: var(--text2);
+      text-align: right;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .card-r3 {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      margin-bottom: 5px;
+    }
+    .card-te-col { flex-shrink: 0; }
+    .card-fe-col { flex: 1; text-align: center; }   /* centre the FE badge */
+    .card-rk-col { flex-shrink: 0; text-align: right; }
+    .card-r4 {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .card-r4 .dep-pills { flex: 1; margin-top: 0; }
+    /* margin-left:auto pushes icon to right edge even when dep-pills is absent */
+    .card-r4 .card-cost-ic { flex-shrink: 0; margin-left: auto; }
+
+    /* ── Compact layout (⊟) — 2 cards per row, smaller text, hide TE/FE & deposits ── */
+    .bid-list.layout-compact {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 8px;
+      align-items: start;
+    }
+    .bid-list.layout-compact .bid-card {
+      padding: 10px 11px;
+      border: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface2);
+    }
+    .bid-list.layout-compact .card-r3           { display: none; }
+    .bid-list.layout-compact .card-r4 .dep-pills { display: none; }
+    .bid-list.layout-compact .card-bn { font-size: 0.8125rem; }
+    .bid-list.layout-compact .card-cl { font-size: 0.6875rem; color: var(--text2); }
+    .bid-list.layout-compact .card-pr,
+    .bid-list.layout-compact .card-lo { font-size: 0.6875rem; }
+
+    /* ── Dense layout (☰) — single column, rows 2 & 3 hidden, minimal padding ── */
+    .bid-list.layout-dense .bid-card { padding: 6px 14px; }
+    .bid-list.layout-dense .card-r2  { display: none; }
+    .bid-list.layout-dense .card-r3  { display: none; }
+    .bid-list.layout-dense .card-r4 .dep-pills { display: none; }
+    .bid-list.layout-dense .card-r1  { margin-bottom: 3px; }
+    .bid-list.layout-dense .card-bn  { font-size: 0.8125rem; }
+    .bid-list.layout-dense .card-cl  { font-size: 0.8125rem; }
+
+    /* ── Back button (improved) ──────────────────── */
+    .btn-back {
+      background: rgba(88,166,255,0.1);
+      border: 1px solid rgba(88,166,255,0.25);
+      color: var(--accent);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 6px 12px;
+      min-width: 80px;
+      min-height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      flex-shrink: 0;
+      line-height: 1;
+      font-family: inherit;
+      white-space: nowrap;
+    }
+    .btn-back:active { opacity: 0.6; }
+
+    /* ── Settings gear button ──────────────────────────────────────────── */
+    .btn-gear {
+      background: transparent;
+      border: none;
+      color: var(--text2);
+      font-size: 1.25rem;
+      cursor: pointer;
+      padding: 4px 6px;
+      border-radius: 6px;
+      -webkit-tap-highlight-color: transparent;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      min-width: 36px;
+      flex-shrink: 0;
+      transition: color 0.12s;
+      font-family: inherit;
+    }
+    .btn-gear:active { color: var(--text); }
+
+    /* ── Settings panel ────────────────────────────────────────────────── */
+    .settings-panel {
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      display: flex;
+      align-items: stretch;
+      justify-content: flex-end;
+    }
+    .settings-backdrop {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+    }
+    .settings-drawer {
+      position: relative;
+      width: min(340px, 92vw);
+      background: var(--surface);
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--border);
+      box-shadow: -8px 0 32px rgba(0,0,0,0.4);
+      overflow: hidden;
+    }
+    .settings-hdr {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 16px;
+      padding-top: max(14px, env(safe-area-inset-top));
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .settings-title { font-size: 1rem; font-weight: 700; color: var(--text); }
+    .btn-close-sett {
+      background: transparent;
+      border: none;
+      color: var(--text2);
+      font-size: 1.125rem;
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 6px;
+      -webkit-tap-highlight-color: transparent;
+      font-family: inherit;
+      line-height: 1;
+    }
+    .btn-close-sett:active { color: var(--text); }
+    .settings-body {
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: max(20px, env(safe-area-inset-bottom));
+    }
+    .sett-sect {
+      padding: 12px 16px 4px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sett-sect:last-child { border-bottom: none; }
+    .sett-sect-title {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text2);
+      margin-bottom: 8px;
+    }
+    .theme-opt {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 9px 0;
+      font-size: 0.9375rem;
+      color: var(--text);
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+    }
+    .theme-opt:last-child { border-bottom: none; margin-bottom: 4px; }
+    .theme-opt input[type="radio"] { accent-color: var(--accent); width: 16px; height: 16px; flex-shrink: 0; cursor: pointer; }
+    .seg-ctrl {
+      display: flex;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .seg-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      border-right: 1px solid var(--border);
+      color: var(--text2);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      padding: 8px 4px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: background 0.12s, color 0.12s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .seg-btn:last-child { border-right: none; }
+    .seg-btn.active { background: var(--accent); color: #fff; font-weight: 600; }
+    html[data-theme="hc"] .seg-btn.active,
+    html[data-theme="warm"] .seg-btn.active { color: #000; }
+    .sett-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 0;
+      font-size: 0.9375rem;
+      color: var(--text);
+    }
+    .sett-num-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 4px 0 12px;
+      font-size: 0.875rem;
+      color: var(--text);
+    }
+    .sett-num {
+      width: 60px;
+      padding: 6px 10px;
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 0.9375rem;
+      font-family: inherit;
+      text-align: center;
+    }
+    .sett-num:focus { outline: none; border-color: var(--accent); }
+    .toggle-sw {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+      flex-shrink: 0;
+    }
+    .toggle-sw input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-track {
+      position: absolute;
+      inset: 0;
+      background: var(--surface2);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: var(--text2);
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.2s, background 0.2s;
+    }
+    .toggle-sw input:checked + .toggle-track { background: rgba(88,166,255,0.2); border-color: var(--accent); }
+    .toggle-sw input:checked + .toggle-track::after { transform: translateX(20px); background: var(--accent); }
+    .about-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      font-size: 0.875rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .about-row:last-child { border-bottom: none; margin-bottom: 4px; }
+    .about-lbl { color: var(--text2); }
+    .about-val { color: var(--text); font-weight: 500; }
+
+    .btn-clear-cache {
+      background: rgba(248,81,73,0.1);
+      border: 1px solid rgba(248,81,73,0.35);
+      color: var(--red);
+      border-radius: 7px;
+      padding: 8px 16px;
+      font-size: 0.875rem;
+      font-family: inherit;
+      cursor: pointer;
+      margin-bottom: 10px;
+      width: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .btn-clear-cache:active { opacity: 0.7; }
+
+    /* ── Detail header (new) ───────────────────────────────────────────── */
+    .detail-header-info { flex: 1; min-width: 0; overflow: hidden; }
+    .detail-header-sub {
+      font-size: 0.75rem;
+      color: var(--text2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 1px;
+    }
+    .detail-badges-bar {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      flex-wrap: wrap;
+      padding: 8px 14px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .detail-badge {
+      font-size: 0.6875rem;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      padding: 3px 9px;
+      border-radius: 6px;
+      border: 1px solid;
+    }
+
+    /* ── Overview grid ─────────────────────────────────────────────────── */
+    .ov-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+      padding: 12px 14px;
+    }
+    .ov-cell {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 9px 11px;
+    }
+    .ov-cell.wide { grid-column: span 2; }
+    .ov-lbl {
+      font-size: 0.625rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text2);
+      margin-bottom: 3px;
+    }
+    .ov-val {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text);
+      word-break: break-word;
+    }
+    .ov-val.dim { color: var(--text2); font-weight: 400; font-size: 0.75rem; }
+
+    /* ── Costing card (detail) ─────────────────────────────────────────── */
+    .cost-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 0 14px;
+    }
+    .cost-card-icon {
+      width: 34px; height: 34px;
+      border-radius: 9px;
+      flex-shrink: 0;
+      background: rgba(88,166,255,0.12);
+      border: 1px solid rgba(88,166,255,0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+    .cost-card-info { flex: 1; min-width: 0; }
+    .cost-card-name {
+      font-size: 0.8125rem;
+      font-weight: 600;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .cost-card-sub { font-size: 0.75rem; color: var(--amber); margin-top: 2px; }
+    .cost-card-sub.ok { color: var(--green); }
+    .cost-card-btn {
+      flex-shrink: 0;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      background: rgba(88,166,255,0.15);
+      color: var(--accent);
+      border: 1px solid rgba(88,166,255,0.35);
+      cursor: pointer;
+      font-family: inherit;
+      -webkit-tap-highlight-color: transparent;
+      transition: opacity 0.12s;
+    }
+    .cost-card-btn:active { opacity: 0.6; }
+    .cost-card-btn:disabled { opacity: 0.35; cursor: default; }
+
+    /* ── Security card (detail) ────────────────────────────────────────── */
+    .sec-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin: 0 14px;
+      overflow: hidden;
+    }
+    .sec-card-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 13px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sec-card-row:last-child { border-bottom: none; }
+    .sec-type-badge {
+      width: 36px; height: 22px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.625rem;
+      font-weight: 800;
+      letter-spacing: 0.04em;
+    }
+    .sec-type-emd { background: rgba(139,92,246,0.18);  color: #c4b5fd; border: 1px solid rgba(139,92,246,0.3); }
+    .sec-type-pbg { background: rgba(245,158,11,0.15);  color: #fbbf24; border: 1px solid rgba(245,158,11,0.3); }
+    .sec-type-sd  { background: rgba(34,197,94,0.12);   color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+    .sec-type-oth { background: var(--surface); color: var(--text2); border: 1px solid var(--border); }
+    .sec-card-info { flex: 1; min-width: 0; }
+    .sec-card-amt { font-size: 0.875rem; font-weight: 700; color: var(--text); }
+    .sec-card-sub { font-size: 0.75rem; color: var(--text2); margin-top: 1px; }
+    .sec-status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .sec-status-dot.active   { background: var(--green); box-shadow: 0 0 5px var(--green); }
+    .sec-status-dot.inactive { background: var(--border); }
+
+    /* ── Workflow timeline (detail) ────────────────────────────────────── */
+    .wf-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 13px;
+      margin: 0 14px;
+    }
+    .wf-ev { display: flex; gap: 10px; margin-bottom: 10px; }
+    .wf-ev:last-child { margin-bottom: 0; }
+    .wf-spine { display: flex; flex-direction: column; align-items: center; width: 14px; flex-shrink: 0; }
+    .wf-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+    .wf-dot-done    { background: var(--green); box-shadow: 0 0 5px rgba(63,185,80,0.55); }
+    .wf-dot-pending { background: var(--amber); box-shadow: 0 0 5px rgba(210,153,34,0.55); }
+    .wf-dot-other   { background: var(--text2); }
+    .wf-line { width: 1px; flex: 1; background: var(--border); margin-top: 3px; }
+    .wf-ev-type { font-size: 0.8125rem; font-weight: 600; color: var(--text); }
+    .wf-ev-date { font-size: 0.75rem; color: var(--text2); margin-top: 2px; }
+    .wf-ev-notes { font-size: 0.75rem; color: var(--text2); margin-top: 2px; line-height: 1.4; }
+    .wf-ev-pill {
+      display: inline-flex;
+      margin-top: 3px;
+      padding: 1px 7px;
+      border-radius: 4px;
+      font-size: 0.6875rem;
+      font-weight: 700;
+    }
+    .wf-ev-pill.done    { background: rgba(63,185,80,0.12);  color: var(--green); }
+    .wf-ev-pill.pending { background: rgba(210,153,34,0.15); color: var(--amber); }
+    .wf-ev-pill.other   { background: var(--surface); color: var(--text2); }
+
+    /* ── Evaluation section badges ─────────────────────────────────────── */
+    .detail-tefe-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      padding: 10px 14px;
+    }
+
+    /* ── coll-body zero-side-padding variant ───────────────────────────── */
+    .coll-body.no-pad { padding: 0 0 12px; }
   </style>
 </head>
 <body>
 
 <!-- ── Screen 1: Sign In ───────────────────────────────────────────── -->
 <div id="screen-signin">
+  <img src="gem.png" alt="GEM" class="signin-logo-img">
   <div class="signin-logo">GEM Mobile</div>
   <div class="signin-divider"></div>
   <div class="signin-sub">GeM Bid Dashboard · Read Only</div>
@@ -748,6 +1487,7 @@
     <button class="btn-sync" id="btn-sync" aria-label="Sync data">
       <span class="sync-icon" aria-hidden="true">↻</span> Sync
     </button>
+    <button class="btn-gear" id="btn-settings" aria-label="Settings">⚙</button>
   </div>
 
   <div class="search-wrap">
@@ -770,6 +1510,16 @@
 
   <div class="chips-wrap" id="chips-wrap" role="group" aria-label="Stage filter"></div>
 
+  <div class="filter-row" id="filter-row" role="group" aria-label="TE/FE filters"></div>
+
+  <div class="controls-bar">
+    <span class="sort-label">Sort</span>
+    <div id="sort-row" style="display:contents"></div>
+    <div class="controls-spacer"></div>
+    <div class="controls-sep"></div>
+    <div id="layout-controls" style="display:contents"></div>
+  </div>
+
   <div class="bid-list" id="bid-list" role="list"></div>
 
   <div class="footer-bar" id="footer-bar" aria-live="polite"></div>
@@ -778,10 +1528,13 @@
 <!-- ── Screen 3: Bid Detail ───────────────────────────────────────── -->
 <div id="screen-detail" hidden>
   <div class="detail-header">
-    <button class="btn-back" id="btn-back" aria-label="Back to bid list">←</button>
-    <span class="detail-header-bn" id="detail-bn"></span>
-    <span class="stage-badge" id="detail-stage-badge"></span>
+    <button class="btn-back" id="btn-back" aria-label="Back to bid list">← Back</button>
+    <div class="detail-header-info">
+      <div class="detail-header-bn" id="detail-bn"></div>
+      <div class="detail-header-sub" id="detail-sub"></div>
+    </div>
   </div>
+  <div class="detail-badges-bar" id="detail-badges-bar"></div>
   <div class="detail-body" id="detail-body"></div>
 </div>
 
@@ -794,6 +1547,83 @@
 </div>
 
 <!-- Toast -->
+<!-- ── Settings Panel ─────────────────────────────────────────────── -->
+<div id="settings-panel" hidden>
+  <div class="settings-panel">
+    <div class="settings-backdrop" id="settings-backdrop"></div>
+    <div class="settings-drawer">
+      <div class="settings-hdr">
+        <span class="settings-title">Settings</span>
+        <button class="btn-close-sett" id="btn-close-settings" aria-label="Close settings">✕</button>
+      </div>
+      <div class="settings-body">
+
+        <!-- Theme -->
+        <div class="sett-sect">
+          <div class="sett-sect-title">Theme</div>
+          <label class="theme-opt"><input type="radio" name="gem-theme" value="default"> Default Dark</label>
+          <label class="theme-opt"><input type="radio" name="gem-theme" value="hc"> Minimalist High-Contrast</label>
+          <label class="theme-opt"><input type="radio" name="gem-theme" value="warm"> Warm Dark Material</label>
+        </div>
+
+        <!-- Font Size -->
+        <div class="sett-sect">
+          <div class="sett-sect-title">Font Size</div>
+          <div class="seg-ctrl" id="font-size-ctrl">
+            <button class="seg-btn" data-val="sm">Small</button>
+            <button class="seg-btn active" data-val="md">Medium</button>
+            <button class="seg-btn" data-val="lg">Large</button>
+          </div>
+        </div>
+
+        <!-- Costing Freshness -->
+        <div class="sett-sect">
+          <div class="sett-sect-title">Costing Freshness Warning</div>
+          <div class="sett-num-wrap">
+            Warn after <input type="number" class="sett-num" id="stale-days-input" min="1" max="90" value="7"> days
+          </div>
+        </div>
+
+        <!-- Show Closed Bids -->
+        <div class="sett-sect">
+          <div class="sett-row">
+            <span>Show Closed Bids</span>
+            <label class="toggle-sw">
+              <input type="checkbox" id="show-closed-toggle">
+              <span class="toggle-track"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Date Format -->
+        <div class="sett-sect">
+          <div class="sett-sect-title">Date Format</div>
+          <div class="seg-ctrl" id="date-format-ctrl">
+            <button class="seg-btn active" data-val="dmy">DD-MM-YYYY</button>
+            <button class="seg-btn" data-val="dmy_short">DD MMM YYYY</button>
+          </div>
+        </div>
+
+        <!-- Cache & Sync -->
+        <div class="sett-sect">
+          <div class="sett-sect-title">Cache &amp; Sync</div>
+          <div class="sett-num-wrap">
+            Stale warning after <input type="number" class="sett-num" id="cache-age-input" min="1" max="168" value="24"> hours
+          </div>
+          <button class="btn-clear-cache" id="btn-clear-cache">Clear Cached Data</button>
+        </div>
+
+        <!-- About -->
+        <div class="sett-sect">
+          <div class="sett-sect-title">About</div>
+          <div id="about-rows"></div>
+        </div>
+
+      </div><!-- settings-body -->
+    </div><!-- settings-drawer -->
+  </div><!-- settings-panel inner -->
+</div><!-- settings-panel wrapper -->
+
 <div id="toast" role="status" aria-live="polite"></div>
 
 <!-- Google Identity Services only — no gapi needed, we use fetch() directly -->
@@ -808,11 +1638,11 @@ const GDRIVE_FOLDER_NAME = 'GEM-Mobile';
 // ───────────────────────────────────────────────────────────────────────
 
 const DRIVE_API          = 'https://www.googleapis.com/drive/v3';
-const COSTING_STALE_DAYS = 7;
+const CACHE_KEY          = 'gem_cache';
+const CACHE_VER          = 1;
 
 // ── App state ──────────────────────────────────────────────────────────
 let accessToken  = null;
-let tokenExpiry  = 0;        // ms timestamp
 let tokenClient  = null;
 
 let bids         = [];       // array of bid objects from bids.json
@@ -831,9 +1661,59 @@ const costingFileIds = {};   // filename → Drive fileId cache
 let activeStage  = 'ALL';
 let searchQuery  = '';
 
+// TE/FE/Non-GEM filter state
+let activeTeFilters  = new Set();
+let activeFeFilters  = new Set();
+let activeNonGem     = false;
+let activeHasCosting = false;
+
+// Sort state
+let sortKey = localStorage.getItem('gem_sort_key') || 'bid_number';
+let sortDir = localStorage.getItem('gem_sort_dir') || 'desc';
+
+// Layout mode
+let layoutMode = localStorage.getItem('gem_layout_mode') || 'default';
+
 // Detail navigation state
-let listScrollPos = 0;
-let currentBid    = null;
+let listScrollPos       = 0;
+let isBackgroundRefresh = false;
+
+// ── Settings state (persisted to localStorage) ─────────────────────────
+let costingStaleDays = parseInt(localStorage.getItem('gem_costing_stale_days') || '7', 10);
+let showClosed       = localStorage.getItem('gem_show_closed') === 'true';
+let dateFormat       = localStorage.getItem('gem_date_format') || 'dmy';
+
+// ── localStorage cache ────────────────────────────────────────────────
+function saveCache() {
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify({
+      v: CACHE_VER,
+      ts: Date.now(),
+      manifestData,
+      bids,
+      workflowData,
+      securityData,
+    }));
+  } catch(e) { /* quota exceeded — ignore */ }
+}
+
+function loadCache() {
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return false;
+    const c = JSON.parse(raw);
+    if (c.v !== CACHE_VER) return false;
+    // Honour the "Max cache age" setting — treat stale cache as absent so
+    // the app fetches fresh data instead of showing hours-old bids.
+    const maxAgeHours = parseInt(localStorage.getItem('gem_cache_max_age_hours') || '24', 10);
+    if (Date.now() - (c.ts || 0) > maxAgeHours * 3_600_000) return false;
+    manifestData = c.manifestData || null;
+    bids         = c.bids        || [];
+    workflowData = c.workflowData || { events: {} };
+    securityData = c.securityData || { deposits: {} };
+    return true;
+  } catch(e) { return false; }
+}
 
 // ── Screen management ─────────────────────────────────────────────────
 const SCREENS = ['screen-signin', 'screen-loading', 'screen-list', 'screen-detail', 'screen-error'];
@@ -878,7 +1758,10 @@ function formatDisplayDate(str) {
   if (!str) return '—';
   const d = parseDDMMYYYY(str);
   if (!d) return str;
-  return `${d.getDate()}-${MONTHS_SHORT[d.getMonth()]}-${d.getFullYear()}`;
+  if (dateFormat === 'dmy_short') {
+    return `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]} ${d.getFullYear()}`;
+  }
+  return `${String(d.getDate()).padStart(2,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${d.getFullYear()}`;
 }
 
 function daysSince(str) {
@@ -910,21 +1793,183 @@ function stageBadgeStyle(s) {
   return `background:${bg};color:${col}`;
 }
 
-// ── Costing indicator (bid list) ──────────────────────────────────────
-function costingHtml(bid) {
+
+// ── 3-state costing icon (B2) ─────────────────────────────────────────
+// fn: costing_gdrive_filename — included as data-fn on clickable states
+function costingIconHtml(bid, fn) {
+  const fnAttr = fn ? ` data-fn="${esc(fn)}"` : '';
   if (!bid.has_costing) {
-    return `<span class="cost-none">No costing file</span>`;
+    return `<span class="cost-ic cost-ic-miss" title="No costing file">📁</span>`;
   }
   const date = bid.costing_last_backed_up;
   if (!date) {
-    return `<span class="cost-warn">⚠ Costing not backed up</span>`;
+    return `<span class="cost-ic cost-ic-stale"${fnAttr} title="Not backed up">📁</span>`;
   }
   const days  = daysSince(date);
   const label = formatShortDate(date);
-  if (days >= COSTING_STALE_DAYS) {
-    return `<span class="cost-warn">⚠ Costing: ${label}</span>`;
+  if (days >= costingStaleDays) {
+    return `<span class="cost-ic cost-ic-stale"${fnAttr} title="Stale · ${label}">📁</span>`;
   }
-  return `<span class="cost-ok">Costing: ${label} ✓</span>`;
+  return `<span class="cost-ic cost-ic-ok"${fnAttr} title="Backed up · ${label}">📁</span>`;
+}
+
+// ── TE/FE badges ─────────────────────────────────────────────────
+function teFeBadgesHtml(bid) {
+  const parts = [];
+  if (bid.te_result === 'Qualified')       parts.push(`<span class="te-badge te-qual-badge">TE ✓</span>`);
+  else if (bid.te_result === 'Not Qualified')    parts.push(`<span class="te-badge te-nq-badge">TE ✗</span>`);
+  else if (bid.te_result === 'Partly Qualified') parts.push(`<span class="te-badge te-part-badge">TE ~</span>`);
+
+  if (bid.fe_result) {
+    const rank = (bid.fe_rank && bid.fe_rank !== '—' && bid.fe_rank !== '') ? ` <span class="fe-rank-tag">${esc(bid.fe_rank)}</span>` : '';
+    if (bid.fe_result === 'L1')                     parts.push(`<span class="fe-badge fe-l1-badge">FE L1</span>${rank}`);
+    else if (bid.fe_result === 'Not L1')            parts.push(`<span class="fe-badge fe-nl1-badge">FE ✗</span>${rank}`);
+    else if (bid.fe_result === 'L1 in Some Schedules') parts.push(`<span class="fe-badge fe-some-badge">FE ~</span>${rank}`);
+  }
+
+  return parts.length ? `<div class="te-fe-badges">${parts.join('')}</div>` : '';
+}
+
+// ── Individual TE / FE / rank helpers for 3-col card row 3 ───────────
+function teBadgeHtml(bid) {
+  if (bid.te_result === 'Qualified')        return `<span class="te-badge te-qual-badge">TE ✓</span>`;
+  if (bid.te_result === 'Not Qualified')    return `<span class="te-badge te-nq-badge">TE ✗</span>`;
+  if (bid.te_result === 'Partly Qualified') return `<span class="te-badge te-part-badge">TE ~</span>`;
+  return '';
+}
+function feBadgeHtml(bid) {
+  if (bid.fe_result === 'L1')                      return `<span class="fe-badge fe-l1-badge">FE L1</span>`;
+  if (bid.fe_result === 'Not L1')                  return `<span class="fe-badge fe-nl1-badge">FE ✗</span>`;
+  if (bid.fe_result === 'L1 in Some Schedules')    return `<span class="fe-badge fe-some-badge">FE ~</span>`;
+  return '';
+}
+function feRankHtml(bid) {
+  if (!bid.fe_rank || bid.fe_rank === '—' || bid.fe_rank === '') return '';
+  return `<span class="fe-rank-tag">${esc(bid.fe_rank)}</span>`;
+}
+
+// ── Security deposit pills (card) ─────────────────────────────────
+function fmtDepAmount(raw) {
+  if (raw == null || raw === '') return '';
+  const n = parseFloat(String(raw).replace(/,/g, ''));
+  if (isNaN(n)) return '';
+  if (n >= 100000) return `₹${+(n / 100000).toFixed(1)}L`;
+  if (n >= 1000)   return `₹${+(n / 1000).toFixed(1)}K`;
+  return `₹${n}`;
+}
+
+function depPillsHtml(bid) {
+  const deps = (securityData && securityData.deposits && securityData.deposits[bid.bid_number]) || [];
+  if (!deps.length) return '';
+
+  const TYPE_ORDER = ['EMD', 'PBG', 'SD'];
+  const byType = {};
+  deps.forEach(d => { const t = d.deposit_type || 'Other'; (byType[t] = byType[t] || []).push(d); });
+
+  const ordered = [...TYPE_ORDER.filter(t => byType[t]), ...Object.keys(byType).filter(t => !TYPE_ORDER.includes(t))];
+  const pills = ordered.map(type => {
+    const list = byType[type];
+    const total = list.reduce((s, d) => s + (parseFloat(String(d.amount || '0').replace(/,/g, '')) || 0), 0);
+    const isActive = list.some(d => { const s = (d.status || '').toLowerCase(); return !s || s === 'active' || s === 'pending'; });
+    const cls = isActive ? 'dep-pill-active' : 'dep-pill-inactive';
+    return `<span class="dep-pill ${cls}"><span class="dep-pill-dot"></span>${esc(type)} ${fmtDepAmount(total)}</span>`;
+  });
+
+  return `<div class="dep-pills">${pills.join('')}</div>`;
+}
+
+// ── Filter row ────────────────────────────────────────────────────
+function renderFilterRow() {
+  const wrap = document.getElementById('filter-row');
+
+  const defs = [
+    { key: 'Qualified',     label: 'TE Qual.',     cls: 'te-qual',     type: 'te' },
+    { key: 'Not Qualified', label: 'TE Not Q.',    cls: 'te-nq',       type: 'te' },
+    { key: 'L1',            label: 'FE L1',        cls: 'fe-l1',       type: 'fe' },
+    { key: 'Not L1',        label: 'FE Not L1',    cls: 'fe-nl1',      type: 'fe' },
+    { key: '_nongem',       label: 'Non-GEM',      cls: 'nongem',      type: 'nongem' },
+    { key: '_hascosting',   label: '📁 Has Costing', cls: 'hascosting', type: 'hascosting' },
+  ];
+
+  const pills = defs.map(f => {
+    let count, active;
+    if (f.type === 'te')          { count = bids.filter(b => b.te_result === f.key).length; active = activeTeFilters.has(f.key); }
+    else if (f.type === 'fe')     { count = bids.filter(b => b.fe_result === f.key).length; active = activeFeFilters.has(f.key); }
+    else if (f.type === 'nongem') { count = bids.filter(b => b.is_non_gem).length;          active = activeNonGem; }
+    else                          { count = bids.filter(b => b.has_costing).length;          active = activeHasCosting; }
+    if (count === 0) return '';
+    return `<button class="filter-pill ${f.cls}${active ? ' active' : ''}" data-ftype="${f.type}" data-fkey="${esc(f.key)}">${esc(f.label)} <span class="filter-pill-count">${count}</span></button>`;
+  }).join('');
+
+  wrap.innerHTML = pills;
+
+  wrap.querySelectorAll('.filter-pill').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const { ftype, fkey } = btn.dataset;
+      if (ftype === 'te') {
+        activeTeFilters.has(fkey) ? activeTeFilters.delete(fkey) : activeTeFilters.add(fkey);
+      } else if (ftype === 'fe') {
+        activeFeFilters.has(fkey) ? activeFeFilters.delete(fkey) : activeFeFilters.add(fkey);
+      } else if (ftype === 'nongem') {
+        activeNonGem = !activeNonGem;
+      } else {
+        activeHasCosting = !activeHasCosting;
+      }
+      renderFilterRow();
+      renderBidList();
+    });
+  });
+}
+
+// ── Sort row ──────────────────────────────────────────────────────
+function renderSortRow() {
+  const wrap = document.getElementById('sort-row');
+  const fields = [
+    { key: 'bid_number', label: '#'       },
+    { key: 'client',     label: 'Client'  },
+    { key: 'product',    label: 'Product' },
+    { key: 'stage',      label: 'Stage'   },
+    { key: 'status',     label: 'Status'  },
+  ];
+  wrap.innerHTML = fields.map(f => {
+    const active = sortKey === f.key;
+    const arrow  = active ? (sortDir === 'asc' ? ' ↑' : ' ↓') : '';
+    return `<button class="sort-btn${active ? ' active' : ''}" data-skey="${f.key}">${esc(f.label)}${arrow}</button>`;
+  }).join('');
+
+  wrap.querySelectorAll('.sort-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.skey;
+      if (sortKey === key) { sortDir = sortDir === 'desc' ? 'asc' : 'desc'; }
+      else { sortKey = key; sortDir = key === 'bid_number' ? 'desc' : 'asc'; }
+      localStorage.setItem('gem_sort_key', sortKey);
+      localStorage.setItem('gem_sort_dir', sortDir);
+      renderSortRow();
+      renderBidList();
+    });
+  });
+}
+
+// ── Layout controls ───────────────────────────────────────────────
+function renderLayoutControls() {
+  const wrap = document.getElementById('layout-controls');
+  const modes = [
+    { key: 'default', label: '⊞' },
+    { key: 'compact', label: '⊟' },
+    { key: 'dense',   label: '☰' },
+  ];
+  wrap.innerHTML = modes.map(m =>
+    `<button class="layout-btn${layoutMode === m.key ? ' active' : ''}" data-mode="${m.key}" title="${m.key} view">${m.label}</button>`
+  ).join('');
+
+  wrap.querySelectorAll('.layout-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      layoutMode = btn.dataset.mode;
+      localStorage.setItem('gem_layout_mode', layoutMode);
+      document.getElementById('bid-list').className = `bid-list layout-${layoutMode}`;
+      renderLayoutControls();
+    });
+  });
 }
 
 // ── Drive API helpers ─────────────────────────────────────────────────
@@ -973,8 +2018,15 @@ async function findFileId(name, parentId) {
 }
 
 async function readJsonFromDrive(filename) {
-  const parentId = await getDataFolderId();
-  const fileId   = await findFileId(filename, parentId);
+  const rootId = await getGemFolderId();
+
+  // Search recursively anywhere inside the GEM-Mobile tree using 'in ancestors'.
+  // This finds the file whether it lives in data/, the root, or any subfolder —
+  // no need to resolve the data/ subfolder ID separately.
+  const q = `name='${filename}' and '${rootId}' in ancestors and trashed=false`;
+  const res = await driveGet(`${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive`);
+  const fileId = (res.files && res.files.length > 0) ? res.files[0].id : null;
+
   if (!fileId) {
     throw new Error(`"${filename}" not found in Google Drive. Please run Export Now from GEM Dashboard Settings → Backup.`);
   }
@@ -1020,8 +2072,40 @@ async function loadData() {
   try { securityData = await readJsonFromDrive('security.json'); }
   catch { securityData = { deposits: {} }; }
 
+  saveCache();
   renderAll();
   show('screen-list');
+}
+
+// ── Background refresh ────────────────────────────────────────────────
+async function loadDataBackground() {
+  const prevBidsStr = JSON.stringify(bids);
+  try {
+    const newManifest  = await readJsonFromDrive('manifest.json');
+    const newBidsJson  = await readJsonFromDrive('bids.json');
+    const newBids      = newBidsJson.bids || [];
+    let   newWorkflow, newSecurity;
+    try { newWorkflow = await readJsonFromDrive('workflow.json'); } catch { newWorkflow = workflowData || { events: {} }; }
+    try { newSecurity = await readJsonFromDrive('security.json'); } catch { newSecurity = securityData || { deposits: {} }; }
+
+    const changed = JSON.stringify(newBids) !== prevBidsStr;
+    manifestData  = newManifest;
+    bids          = newBids;
+    workflowData  = newWorkflow;
+    securityData  = newSecurity;
+
+    saveCache();
+    if (changed) {
+      showUpdateToast(newBids.length);   // user taps toast to pull in new data
+    }
+  } catch(err) {
+    if (err.code === 401) {
+      accessToken = null;
+      localStorage.removeItem('gem_token_expiry');
+      // silently let token expire — user will be prompted on next explicit action
+    }
+    // other errors: silent in background mode
+  }
 }
 
 // ── Chips ─────────────────────────────────────────────────────────────
@@ -1058,10 +2142,7 @@ function renderChips() {
 
 // ── Bid list ──────────────────────────────────────────────────────────
 function filteredBids() {
-  // Sort newest first (descending bid number) so recent active bids appear at top
-  let result = [...bids].sort((a, b) =>
-    b.bid_number.localeCompare(a.bid_number, undefined, { numeric: true })
-  );
+  let result = [...bids];
 
   if (activeStage !== 'ALL') {
     result = result.filter(b => b.stage === activeStage);
@@ -1070,13 +2151,55 @@ function filteredBids() {
   if (searchQuery) {
     const q = searchQuery.toLowerCase();
     result = result.filter(b =>
-      (b.bid_number        || '').toLowerCase().includes(q) ||
-      (b.client            || '').toLowerCase().includes(q) ||
-      (b.product           || '').toLowerCase().includes(q) ||
-      (b.location          || '').toLowerCase().includes(q) ||
-      (b.quoted_company    || '').toLowerCase().includes(q) ||
+      (b.bid_number          || '').toLowerCase().includes(q) ||
+      (b.client              || '').toLowerCase().includes(q) ||
+      (b.product             || '').toLowerCase().includes(q) ||
+      (b.location            || '').toLowerCase().includes(q) ||
+      (b.quoted_company      || '').toLowerCase().includes(q) ||
       (b.gem_contract_number || '').toLowerCase().includes(q)
     );
+  }
+
+  if (!showClosed && activeStage === 'ALL') {
+    result = result.filter(b => b.stage !== 'CLOSED');
+  }
+
+  if (activeTeFilters.size > 0) {
+    result = result.filter(b => activeTeFilters.has(b.te_result || ''));
+  }
+  if (activeFeFilters.size > 0) {
+    result = result.filter(b => activeFeFilters.has(b.fe_result || ''));
+  }
+  if (activeNonGem) {
+    result = result.filter(b => b.is_non_gem);
+  }
+  if (activeHasCosting) {
+    result = result.filter(b => b.has_costing);
+  }
+
+  // Sort
+  const stageOrder = ['QUOTED','TECHNICAL EVALUATION','FINANCIAL EVALUATION','ORDER','CLOSED'];
+  result.sort((a, b) => {
+    let cmp = 0;
+    if (sortKey === 'bid_number') {
+      cmp = a.bid_number.localeCompare(b.bid_number, undefined, { numeric: true });
+    } else if (sortKey === 'client') {
+      cmp = (a.client  || '').localeCompare(b.client  || '');
+    } else if (sortKey === 'product') {
+      cmp = (a.product || '').localeCompare(b.product || '');
+    } else if (sortKey === 'status') {
+      cmp = (a.status  || '').localeCompare(b.status  || '');
+    } else if (sortKey === 'stage') {
+      cmp = (stageOrder.indexOf(a.stage) - stageOrder.indexOf(b.stage));
+    }
+    return sortDir === 'asc' ? cmp : -cmp;
+  });
+
+  // Non-GEM bids always sink to bottom unless Non-GEM filter is active
+  if (!activeNonGem) {
+    const regular = result.filter(b => !b.is_non_gem);
+    const nonGem  = result.filter(b =>  b.is_non_gem);
+    result = [...regular, ...nonGem];
   }
 
   return result;
@@ -1084,27 +2207,75 @@ function filteredBids() {
 
 function renderBidList() {
   const list = document.getElementById('bid-list');
-  const fb   = filteredBids();
+  list.className = `bid-list layout-${layoutMode}`;
+  const fb = filteredBids();
 
   if (fb.length === 0) {
     list.innerHTML = `<div class="empty-state">No bids match your search</div>`;
     return;
   }
 
-  list.innerHTML = fb.map((bid, i) => `
+  list.innerHTML = fb.map((bid, i) => {
+    const fn    = bid.costing_gdrive_filename || '';
+    const te    = teBadgeHtml(bid);
+    const fe    = feBadgeHtml(bid);
+    const rank  = feRankHtml(bid);
+    const deps  = depPillsHtml(bid);
+    const cIcon = costingIconHtml(bid, fn);
+    const hasTeFe = te || fe || rank;
+    return `
     <div class="bid-card" role="listitem" data-idx="${i}">
-      <div class="bid-number">${esc(bid.bid_number)}</div>
-      <div class="bid-client">${esc(bid.client)}</div>
-      <div class="bid-meta">${esc(bid.product)} · ${esc(bid.location)}</div>
-      <div class="bid-row">
-        <span class="stage-badge" style="${stageBadgeStyle(bid.stage)}">${stageLabel(bid.stage)}</span>
-        ${costingHtml(bid)}
+      <!-- Row 1: bid number | client -->
+      <div class="card-r1">
+        <span class="card-bn">${esc(bid.bid_number)}</span>
+        <span class="card-cl">${esc(bid.client)}</span>
       </div>
-    </div>
-  `).join('');
+      <!-- Row 2: product | location -->
+      <div class="card-r2">
+        <span class="card-pr">${esc(bid.product || '—')}</span>
+        <span class="card-lo">${esc(bid.location || '—')}</span>
+      </div>
+      <!-- Row 3: TE (left) | FE (centre) | rank (right) — hidden when no data -->
+      ${hasTeFe ? `<div class="card-r3">
+        <span class="card-te-col">${te}</span>
+        <span class="card-fe-col">${fe}</span>
+        <span class="card-rk-col">${rank}</span>
+      </div>` : ''}
+      <!-- Row 4: stage badge | deposit pills | costing icon -->
+      <div class="card-r4">
+        <span class="stage-badge" style="${stageBadgeStyle(bid.stage)}">${stageLabel(bid.stage)}</span>
+        ${deps}
+        <span class="card-cost-ic">${cIcon}</span>
+      </div>
+    </div>`;
+  }).join('');
 
   list.querySelectorAll('.bid-card').forEach((card, i) => {
     card.addEventListener('click', () => openDetail(fb[i]));
+  });
+
+  // Costing icon click — opens Drive file for green/amber states (has data-fn)
+  list.querySelectorAll('.cost-ic-ok, .cost-ic-stale').forEach(el => {
+    if (!el.dataset.fn) return;
+    el.addEventListener('click', async e => {
+      e.stopPropagation();
+      const fn = el.dataset.fn;
+      const orig = el.innerHTML;
+      el.innerHTML = '⏳';
+      try {
+        const fileId = await findCostingFileId(fn);
+        if (fileId) {
+          window.open(`https://drive.google.com/file/d/${fileId}/view`, '_blank', 'noopener');
+        } else {
+          showToast('Costing file not found in Drive');
+        }
+      } catch (err) {
+        if (err.code === 401) { accessToken = null; show('screen-signin'); }
+        else showToast('Error: ' + err.message);
+      } finally {
+        el.innerHTML = orig;
+      }
+    });
   });
 }
 
@@ -1118,6 +2289,9 @@ function renderFooter() {
 
 function renderAll() {
   renderChips();
+  renderFilterRow();
+  renderSortRow();
+  renderLayoutControls();
   renderBidList();
   renderFooter();
 }
@@ -1153,12 +2327,14 @@ document.getElementById('btn-sync').addEventListener('click', async () => {
     bids = bidsJson.bids || [];
     try { workflowData = await readJsonFromDrive('workflow.json'); } catch { workflowData = { events: {} }; }
     try { securityData = await readJsonFromDrive('security.json'); } catch { securityData = { deposits: {} }; }
+    saveCache();
     renderAll();
     showToast('Data updated');
   } catch (err) {
     if (err.code === 401) {
       showToast('Session expired — please sign in again');
       accessToken = null;
+      localStorage.removeItem('gem_token_expiry');
       show('screen-signin');
     } else {
       showToast('Sync failed: ' + err.message);
@@ -1172,12 +2348,32 @@ document.getElementById('btn-sync').addEventListener('click', async () => {
 // ── Detail screen ─────────────────────────────────────────────────────
 function openDetail(bid) {
   listScrollPos = document.getElementById('bid-list').scrollTop;
-  currentBid    = bid;
 
-  document.getElementById('detail-bn').textContent = bid.bid_number;
-  const badge = document.getElementById('detail-stage-badge');
-  badge.textContent = stageLabel(bid.stage);
-  badge.setAttribute('style', stageBadgeStyle(bid.stage));
+  document.getElementById('detail-bn').textContent = `Bid #${bid.bid_number}`;
+  const subParts = [bid.client, bid.location].filter(Boolean);
+  document.getElementById('detail-sub').textContent = subParts.join(' · ') || '—';
+
+  // Badges bar: stage, status, company, TE result
+  const badgesBar = document.getElementById('detail-badges-bar');
+  const badges = [];
+  const [stageBg, stageCol] = STAGE_COLORS[bid.stage] || ['#21262d','#8b949e'];
+  badges.push(`<span class="detail-badge" style="background:${stageBg};color:${stageCol};border-color:${stageCol}40">${esc(stageLabel(bid.stage))}</span>`);
+  if (bid.status) {
+    const isOpen = (bid.status||'').toLowerCase() === 'open';
+    const sBg  = isOpen ? 'rgba(59,130,246,0.15)' : 'rgba(139,148,158,0.1)';
+    const sCol = isOpen ? '#93c5fd' : '#8b949e';
+    const sBrd = isOpen ? 'rgba(59,130,246,0.3)' : 'rgba(139,148,158,0.2)';
+    badges.push(`<span class="detail-badge" style="background:${sBg};color:${sCol};border-color:${sBrd}">${esc(bid.status)}</span>`);
+  }
+  if (bid.quoted_company) {
+    badges.push(`<span class="detail-badge" style="background:rgba(139,92,246,0.12);color:#c4b5fd;border-color:rgba(139,92,246,0.3)">${esc(bid.quoted_company)}</span>`);
+  }
+  if (bid.te_result === 'Qualified') {
+    badges.push(`<span class="detail-badge" style="background:rgba(13,148,136,0.15);color:#2dd4bf;border-color:rgba(13,148,136,0.3)">TE ✓</span>`);
+  } else if (bid.te_result === 'Not Qualified') {
+    badges.push(`<span class="detail-badge" style="background:rgba(248,81,73,0.12);color:#f85149;border-color:rgba(248,81,73,0.25)">TE ✗</span>`);
+  }
+  badgesBar.innerHTML = badges.join('');
 
   const body = document.getElementById('detail-body');
   body.innerHTML = buildDetailHtml(bid);
@@ -1196,52 +2392,101 @@ document.getElementById('btn-back').addEventListener('click', () => {
 
 // ── Detail HTML builders ───────────────────────────────────────────────
 function buildDetailHtml(bid) {
-  return buildFieldsSection(bid)
-       + buildCostingSection(bid)
+  return buildOverviewSection(bid)
+       + buildTeFeSectionDetail(bid)
+       + buildSecuritySection(bid)
        + buildWorkflowSection(bid)
-       + buildSecuritySection(bid);
+       + buildCostingSection(bid);
 }
 
-function buildFieldsSection(bid) {
-  const rows = [
-    ['CLIENT',   esc(bid.client   || '—')],
-    ['PRODUCT',  esc(bid.product  || '—')],
-    ['LOCATION', esc(bid.location || '—')],
-    ['COMPANY',  esc(bid.quoted_company || '—')],
-  ];
+function buildOverviewSection(bid) {
+  const cells = [];
+  if (bid.product)      cells.push({ lbl: 'Product',  val: bid.product });
+  if (bid.quoted_date)  cells.push({ lbl: 'Quoted',   val: formatDisplayDate(bid.quoted_date) });
+  if (bid.gem_contract_number) cells.push({ lbl: 'GEM Contract', val: bid.gem_contract_number, wide: true });
+  if (bid.location)     cells.push({ lbl: 'Location', val: bid.location });
   if (bid.stage === 'ORDER') {
-    if (bid.gem_contract_number) rows.push(['CONTRACT', esc(bid.gem_contract_number)]);
-    if (bid.order_date)          rows.push(['ORDER',    esc(formatDisplayDate(bid.order_date))]);
+    cells.push({ lbl: 'Order Date', val: bid.order_date ? formatDisplayDate(bid.order_date) : null });
   }
-  if (bid.quoted_date) rows.push(['QUOTED', esc(formatDisplayDate(bid.quoted_date))]);
 
-  return `<div class="detail-fields">
-    ${rows.map(([lbl, val]) => `
-      <div class="field-row">
-        <span class="field-label">${lbl}</span>
-        <span class="field-value">${val}</span>
-      </div>`).join('')}
+  const gridHtml = cells.map(c =>
+    `<div class="ov-cell${c.wide ? ' wide' : ''}">
+      <div class="ov-lbl">${esc(c.lbl)}</div>
+      <div class="ov-val${c.val ? '' : ' dim'}">${esc(c.val || '— not set')}</div>
+    </div>`
+  ).join('');
+
+  return `<div class="coll-section open" id="coll-overview">
+    <div class="coll-header" data-coll="coll-overview">
+      <span class="coll-icon">📋</span>
+      <span class="coll-title">Overview</span>
+      <span class="coll-chevron">▼</span>
+    </div>
+    <div class="coll-body no-pad"><div class="ov-grid">${gridHtml}</div></div>
+  </div>`;
+}
+
+function buildTeFeSectionDetail(bid) {
+  if (!bid.te_result && !bid.fe_result) return '';
+
+  const badges = [];
+  if (bid.te_result === 'Qualified')       badges.push(`<span class="te-badge te-qual-badge">TE: Qualified ✓</span>`);
+  else if (bid.te_result === 'Not Qualified')    badges.push(`<span class="te-badge te-nq-badge">TE: Not Qualified</span>`);
+  else if (bid.te_result === 'Partly Qualified') badges.push(`<span class="te-badge te-part-badge">TE: Partly Qualified</span>`);
+
+  if (bid.fe_result === 'L1')                        badges.push(`<span class="fe-badge fe-l1-badge">FE: L1</span>`);
+  else if (bid.fe_result === 'Not L1')               badges.push(`<span class="fe-badge fe-nl1-badge">FE: Not L1</span>`);
+  else if (bid.fe_result === 'L1 in Some Schedules') badges.push(`<span class="fe-badge fe-some-badge">FE: Partial L1</span>`);
+
+  if (bid.fe_rank && bid.fe_rank !== '—' && bid.fe_rank !== '') {
+    badges.push(`<span class="fe-rank-tag">Rank: ${esc(bid.fe_rank)}</span>`);
+  }
+
+  return `<div class="coll-section open" id="coll-tefe">
+    <div class="coll-header" data-coll="coll-tefe">
+      <span class="coll-icon">🏆</span>
+      <span class="coll-title">Evaluation</span>
+      <span class="coll-chevron">▼</span>
+    </div>
+    <div class="coll-body">
+      <div class="detail-tefe-row">${badges.join('')}</div>
+    </div>
   </div>`;
 }
 
 function buildCostingSection(bid) {
   let inner;
   if (!bid.has_costing) {
-    inner = `<div class="costing-none">No costing file linked to this bid.</div>`;
+    inner = `<div class="empty-section" style="padding:6px 14px 14px">No costing file linked to this bid.</div>`;
   } else {
-    const ts = bid.costing_last_backed_up
-      ? `Last backed up: <strong>${esc(bid.costing_last_backed_up)}</strong>`
-      : 'Not yet backed up';
     const fn = bid.costing_gdrive_filename || '';
-    inner = `
-      <div class="costing-ts">${ts}</div>
-      <button class="btn-open-drive" id="btn-open-costing" data-filename="${esc(fn)}"${fn ? '' : ' disabled'}>
-        📂&nbsp; Open in Google Drive
-      </button>`;
+    let subHtml = '';
+    if (bid.costing_last_backed_up) {
+      const d    = parseDDMMYYYY(bid.costing_last_backed_up);
+      const days = d ? Math.floor((Date.now() - d.getTime()) / 86_400_000) : null;
+      const stale = days != null && days >= costingStaleDays;
+      subHtml = stale
+        ? `<div class="cost-card-sub">⚠ Backed up ${days} day${days !== 1 ? 's' : ''} ago</div>`
+        : `<div class="cost-card-sub ok">✓ ${formatDisplayDate(bid.costing_last_backed_up)}</div>`;
+    } else {
+      subHtml = `<div class="cost-card-sub">Not yet backed up</div>`;
+    }
+    inner = `<div class="cost-card">
+      <div class="cost-card-icon">📄</div>
+      <div class="cost-card-info">
+        <div class="cost-card-name">${esc(fn || 'costing file')}</div>
+        ${subHtml}
+      </div>
+      <button class="cost-card-btn" id="btn-open-costing" data-filename="${esc(fn)}"${fn ? '' : ' disabled'}>Open ↗</button>
+    </div>`;
   }
-  return `<div class="detail-section">
-    <div class="section-label">📄 Costing File</div>
-    ${inner}
+  return `<div class="coll-section open" id="coll-costing">
+    <div class="coll-header" data-coll="coll-costing">
+      <span class="coll-icon">📄</span>
+      <span class="coll-title">Costing File</span>
+      <span class="coll-chevron">▼</span>
+    </div>
+    <div class="coll-body no-pad">${inner}</div>
   </div>`;
 }
 
@@ -1252,48 +2497,42 @@ function buildWorkflowSection(bid) {
     if (!da && !db) return 0; if (!da) return 1; if (!db) return -1;
     return db - da;
   });
-
   const count = events.length;
 
   let body;
   if (count === 0) {
-    body = `<div class="empty-section">No workflow events recorded</div>`;
+    body = `<div class="empty-section" style="padding:6px 14px 14px">None recorded</div>`;
   } else {
-    body = events.map(ev => {
-      const icon = ev.status === 'Done' ? '✅' : ev.auto_created ? '🔄' : '🔔';
-      const [sBg, sCol] = ev.status === 'Done'    ? ['#071f10','#3fb950']
-                        : ev.status === 'Pending' ? ['#2a1d06','#d29922']
-                        : ['#21262d','#8b949e'];
-      const pill = `<span class="ev-status-pill" style="background:${sBg};color:${sCol}">${esc(ev.status)}</span>`;
-      const remHtml = (ev.reminder === 'Active')
-        ? `<span class="ev-reminder" style="color:#cba6f7" title="Reminder active">🔔</span>`
-        : '';
-      const notesHtml = ev.notes
-        ? `<div class="event-notes">${esc(ev.notes)}</div>`
-        : '';
-      return `<div class="event-row">
-        <span class="event-icon">${icon}</span>
-        <div class="event-content">
-          <div class="event-type">${esc(ev.event_type)}</div>
-          <div class="event-sub">
-            <span>${esc(ev.event_date || '—')}</span>
-            ${pill}
-            ${remHtml}
-          </div>
+    body = `<div class="wf-card">${events.map((ev, i) => {
+      const isDone = ev.status === 'Done';
+      const isPend = ev.status === 'Pending';
+      const dotCls = isDone ? 'wf-dot-done' : isPend ? 'wf-dot-pending' : 'wf-dot-other';
+      const pillCls = isDone ? 'done' : isPend ? 'pending' : 'other';
+      const isLast = i === events.length - 1;
+      const notesHtml = ev.notes ? `<div class="wf-ev-notes">${esc(ev.notes)}</div>` : '';
+      return `<div class="wf-ev">
+        <div class="wf-spine">
+          <div class="wf-dot ${dotCls}"></div>
+          ${isLast ? '' : '<div class="wf-line"></div>'}
+        </div>
+        <div style="flex:1;min-width:0">
+          <div class="wf-ev-type">${esc(ev.event_type)}</div>
+          <div class="wf-ev-date">${esc(formatDisplayDate(ev.event_date) || '—')}</div>
           ${notesHtml}
+          <span class="wf-ev-pill ${pillCls}">${esc(ev.status || 'Unknown')}</span>
         </div>
       </div>`;
-    }).join('');
+    }).join('')}</div>`;
   }
 
   return `<div class="coll-section open" id="coll-workflow">
     <div class="coll-header" data-coll="coll-workflow">
-      <span class="coll-icon">📋</span>
+      <span class="coll-icon">🗂</span>
       <span class="coll-title">Workflow</span>
       <span class="coll-count">${count} event${count !== 1 ? 's' : ''}</span>
       <span class="coll-chevron">▼</span>
     </div>
-    <div class="coll-body">${body}</div>
+    <div class="coll-body no-pad">${body}</div>
   </div>`;
 }
 
@@ -1304,42 +2543,38 @@ function buildSecuritySection(bid) {
     if (!da && !db) return 0; if (!da) return 1; if (!db) return -1;
     return da - db;
   });
-
   const count = deps.length;
   const now   = Date.now();
 
   let body;
   if (count === 0) {
-    body = `<div class="empty-section">No security deposits recorded</div>`;
+    body = `<div class="empty-section" style="padding:6px 14px 14px">None recorded</div>`;
   } else {
-    body = deps.map(dep => {
+    const TYPE_CLASS = { EMD: 'sec-type-emd', PBG: 'sec-type-pbg', SD: 'sec-type-sd' };
+    body = `<div class="sec-card">${deps.map(dep => {
+      const typeClass = TYPE_CLASS[dep.deposit_type] || 'sec-type-oth';
+      const amount = dep.amount != null ? `₹${Number(dep.amount).toLocaleString('en-IN')}` : '—';
       const due = parseDDMMYYYY(dep.due_date);
-      let dueClass = '', dueLabel = dep.due_date || '';
+      let dueClass = '', dueLabel = dep.due_date ? formatDisplayDate(dep.due_date) : null;
       if (due) {
         const days = (due - now) / 86_400_000;
         dueClass = days < 0 ? 'due-past' : days < 30 ? 'due-soon' : 'due-ok';
       }
-      const dueHtml = dueLabel
-        ? `<span class="${dueClass}">Due: ${esc(dueLabel)}</span>`
-        : '';
-      const amount = dep.amount != null
-        ? `₹${Number(dep.amount).toLocaleString('en-IN')}`
-        : '—';
       const metaParts = [
-        dep.bank ? esc(dep.bank) : null,
-        dep.instrument_no ? `#${esc(dep.instrument_no)}` : null,
-        dueHtml || null,
-        dep.class ? `(${esc(dep.class)})` : null,
+        dep.bank           ? esc(dep.bank) : null,
+        dep.instrument_no  ? `#${esc(dep.instrument_no)}` : null,
+        dueLabel           ? `<span class="${dueClass}">Due: ${esc(dueLabel)}</span>` : null,
       ].filter(Boolean);
-
-      return `<div class="deposit-row">
-        <div class="deposit-top">
-          <span class="dep-type-tag">${esc(dep.deposit_type)}</span>
-          <span class="dep-amount">${esc(amount)}</span>
+      const isActive = (() => { const s = (dep.status||'').toLowerCase(); return !s || s === 'active' || s === 'pending'; })();
+      return `<div class="sec-card-row">
+        <div class="sec-type-badge ${typeClass}">${esc(dep.deposit_type || '?')}</div>
+        <div class="sec-card-info">
+          <div class="sec-card-amt">${esc(amount)}</div>
+          <div class="sec-card-sub">${metaParts.join(' · ') || '—'}</div>
         </div>
-        <div class="dep-meta">${metaParts.join(' · ')}</div>
+        <div class="sec-status-dot ${isActive ? 'active' : 'inactive'}" title="${isActive ? 'Active' : esc(dep.status || 'Unknown')}"></div>
       </div>`;
-    }).join('');
+    }).join('')}</div>`;
   }
 
   return `<div class="coll-section open" id="coll-security">
@@ -1349,7 +2584,7 @@ function buildSecuritySection(bid) {
       <span class="coll-count">${count} deposit${count !== 1 ? 's' : ''}</span>
       <span class="coll-chevron">▼</span>
     </div>
-    <div class="coll-body">${body}</div>
+    <div class="coll-body no-pad">${body}</div>
   </div>`;
 }
 
@@ -1403,9 +2638,43 @@ let toastTimer = null;
 function showToast(msg) {
   const el = document.getElementById('toast');
   el.textContent = msg;
+  el.classList.remove('toast-update', 'toast-html-update');
+  el.onclick = null;
   el.classList.add('visible');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => el.classList.remove('visible'), 2800);
+}
+
+// Persistent green toast shown after background refresh finds new data.
+// User must tap it to pull the new data into the list.
+function showUpdateToast(count) {
+  const el = document.getElementById('toast');
+  el.textContent = `Updated · ${count} bids — Tap to refresh`;
+  el.classList.add('visible', 'toast-update');
+  clearTimeout(toastTimer);
+  const dismiss = () => {
+    el.classList.remove('visible', 'toast-update');
+    el.onclick = null;
+    clearTimeout(toastTimer);
+  };
+  el.onclick = () => { renderAll(); dismiss(); };
+  toastTimer = setTimeout(dismiss, 8000);
+}
+
+// Persistent blue toast shown when SW detects a new index.html on GitHub Pages.
+// User taps to reload and pick up the new version.
+function showHtmlUpdateToast() {
+  const el = document.getElementById('toast');
+  el.textContent = 'New version available — tap to reload';
+  el.classList.add('visible', 'toast-html-update');
+  clearTimeout(toastTimer);
+  const dismiss = () => {
+    el.classList.remove('visible', 'toast-html-update');
+    el.onclick = null;
+    clearTimeout(toastTimer);
+  };
+  el.onclick = () => { dismiss(); window.location.reload(); };
+  toastTimer = setTimeout(dismiss, 12000);
 }
 
 // ── Error screen ──────────────────────────────────────────────────────
@@ -1414,13 +2683,129 @@ function showError(msg) {
   show('screen-error');
 }
 
-document.getElementById('btn-retry').addEventListener('click', () => {
-  accessToken     = null;
+document.getElementById('btn-retry').addEventListener('click', async () => {
+  // Reset folder caches so searches start fresh
   gemFolderId     = null;
   dataFolderId    = null;
   costingFolderId = undefined;
-  document.getElementById('auth-error').hidden = true;
-  show('screen-signin');
+
+  const storedExpiry = parseInt(localStorage.getItem('gem_token_expiry') || '0', 10);
+  const tokenStillValid = accessToken && storedExpiry > Date.now() + 60_000;
+
+  if (tokenStillValid) {
+    // Token is still valid — retry loading without forcing re-auth
+    show('screen-loading');
+    try {
+      await loadData();
+    } catch (err) {
+      showError(err.message || 'Failed to load data from Google Drive.');
+    }
+  } else {
+    // Token expired — fall back to sign-in flow
+    accessToken = null;
+    localStorage.removeItem('gem_token_expiry');
+    document.getElementById('auth-error').hidden = true;
+    show('screen-signin');
+  }
+});
+
+// ── Settings panel ────────────────────────────────────────────────────
+function applyTheme(t) {
+  if (t === 'default') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('gem_theme', t);
+}
+
+function applyFontSize(f) {
+  if (f === 'md') document.documentElement.removeAttribute('data-font');
+  else document.documentElement.setAttribute('data-font', f);
+  localStorage.setItem('gem_font_size', f);
+}
+
+function openSettings() {
+  const panel = document.getElementById('settings-panel');
+  panel.hidden = false;
+
+  // Sync current values into panel controls
+  const theme = localStorage.getItem('gem_theme') || 'default';
+  document.querySelectorAll('input[name="gem-theme"]').forEach(r => { r.checked = (r.value === theme); });
+
+  const font = localStorage.getItem('gem_font_size') || 'md';
+  document.querySelectorAll('#font-size-ctrl .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.val === font));
+
+  const sd = parseInt(localStorage.getItem('gem_costing_stale_days') || '7', 10);
+  document.getElementById('stale-days-input').value = sd;
+
+  document.getElementById('show-closed-toggle').checked = showClosed;
+
+  const cAge = parseInt(localStorage.getItem('gem_cache_max_age_hours') || '24', 10);
+  document.getElementById('cache-age-input').value = cAge;
+
+  const df = localStorage.getItem('gem_date_format') || 'dmy';
+  document.querySelectorAll('#date-format-ctrl .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.val === df));
+
+  // About section
+  document.getElementById('about-rows').innerHTML = [
+    ['Version',     'v1.0'],
+    ['Last Export', manifestData ? (manifestData.last_exported || '—') : '—'],
+    ['Total Bids',  String(bids.length)],
+  ].map(([lbl, val]) =>
+    `<div class="about-row"><span class="about-lbl">${esc(lbl)}</span><span class="about-val">${esc(val)}</span></div>`
+  ).join('');
+}
+
+function closeSettings() {
+  document.getElementById('settings-panel').hidden = true;
+}
+
+document.getElementById('btn-settings').addEventListener('click', openSettings);
+document.getElementById('btn-close-settings').addEventListener('click', closeSettings);
+document.getElementById('settings-backdrop').addEventListener('click', closeSettings);
+
+document.querySelectorAll('input[name="gem-theme"]').forEach(r => {
+  r.addEventListener('change', () => { if (r.checked) applyTheme(r.value); });
+});
+
+document.querySelectorAll('#font-size-ctrl .seg-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const val = btn.dataset.val;
+    applyFontSize(val);
+    document.querySelectorAll('#font-size-ctrl .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.val === val));
+  });
+});
+
+document.getElementById('stale-days-input').addEventListener('change', e => {
+  const v = Math.max(1, Math.min(90, parseInt(e.target.value, 10) || 7));
+  e.target.value = v;
+  costingStaleDays = v;
+  localStorage.setItem('gem_costing_stale_days', String(v));
+});
+
+document.getElementById('show-closed-toggle').addEventListener('change', e => {
+  showClosed = e.target.checked;
+  localStorage.setItem('gem_show_closed', showClosed ? 'true' : 'false');
+  renderBidList();
+});
+
+document.getElementById('cache-age-input').addEventListener('change', e => {
+  const v = Math.max(1, Math.min(168, parseInt(e.target.value, 10) || 24));
+  e.target.value = v;
+  localStorage.setItem('gem_cache_max_age_hours', String(v));
+});
+
+document.getElementById('btn-clear-cache').addEventListener('click', () => {
+  localStorage.removeItem('gem_cache');
+  showToast('Cache cleared — next Sync will reload from Drive');
+  closeSettings();
+});
+
+document.querySelectorAll('#date-format-ctrl .seg-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const val = btn.dataset.val;
+    dateFormat = val;
+    localStorage.setItem('gem_date_format', val);
+    document.querySelectorAll('#date-format-ctrl .seg-btn').forEach(b => b.classList.toggle('active', b.dataset.val === val));
+  });
 });
 
 // ── OAuth / Sign-in ───────────────────────────────────────────────────
@@ -1450,12 +2835,18 @@ function initTokenClient() {
       // Successful sign-in — clear any previous auth error
       document.getElementById('auth-error').hidden = true;
       accessToken = response.access_token;
-      tokenExpiry = Date.now() + ((response.expires_in || 3600) * 1000);
-      show('screen-loading');
-      try {
-        await loadData();
-      } catch (err) {
-        showError(err.message || 'Failed to load data from Google Drive.');
+      localStorage.setItem('gem_token_expiry', String(Date.now() + ((response.expires_in || 3600) * 1000)));
+
+      if (isBackgroundRefresh) {
+        isBackgroundRefresh = false;
+        await loadDataBackground();
+      } else {
+        show('screen-loading');
+        try {
+          await loadData();
+        } catch (err) {
+          showError(err.message || 'Failed to load data from Google Drive.');
+        }
       }
     }
   });
@@ -1471,7 +2862,32 @@ document.getElementById('btn-signin').addEventListener('click', () => {
 });
 
 window.addEventListener('load', () => {
-  if (window.google && google.accounts && google.accounts.oauth2) initTokenClient();
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.addEventListener('message', e => {
+      if (e.data?.type === 'UPDATE') showHtmlUpdateToast();
+    });
+  }
+  if (!window.google || !google.accounts || !google.accounts.oauth2) return;
+  initTokenClient();
+
+  const storedExpiry = parseInt(localStorage.getItem('gem_token_expiry') || '0', 10);
+  const tokenValid   = storedExpiry > Date.now() + 60_000;
+
+  if (tokenValid) {
+    // Cache-first: show UI instantly from localStorage, then refresh Drive data in background
+    const hasCached = loadCache();
+    if (hasCached) {
+      renderAll();
+      show('screen-list');
+      isBackgroundRefresh = true;
+      tokenClient.requestAccessToken({ prompt: '' });
+    } else {
+      // Token valid but no cache — show loading screen and fetch fresh
+      tokenClient.requestAccessToken({ prompt: '' });
+    }
+  }
+  // If token expired, stay on sign-in screen (user taps the button)
 });
 </script>
 </body>
