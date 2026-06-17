@@ -2018,10 +2018,18 @@ async function findFileId(name, parentId) {
 }
 
 async function readJsonFromDrive(filename) {
-  const parentId = await getDataFolderId();
-  const q = `name='${filename}' and '${parentId}' in parents and trashed=false`;
-  const res = await driveGet(`${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive`);
-  const fileId = (res.files && res.files.length > 0) ? res.files[0].id : null;
+  const rootId   = await getGemFolderId();
+  const dataId   = await getDataFolderId();
+
+  // Search in the data/ subfolder first; if not found (or data/ == root), also try root.
+  const searchIds = dataId !== rootId ? [dataId, rootId] : [rootId];
+  let fileId = null;
+  for (const pid of searchIds) {
+    const q = `name='${filename}' and '${pid}' in parents and trashed=false`;
+    const res = await driveGet(`${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive`);
+    fileId = (res.files && res.files.length > 0) ? res.files[0].id : null;
+    if (fileId) break;
+  }
 
   if (!fileId) {
     throw new Error(`"${filename}" not found in Google Drive. Please run Export Now from GEM Dashboard Settings → Backup.`);
