@@ -2018,12 +2018,8 @@ async function findFileId(name, parentId) {
 }
 
 async function readJsonFromDrive(filename) {
-  const rootId = await getGemFolderId();
-
-  // Search recursively anywhere inside the GEM-Mobile tree using 'in ancestors'.
-  // This finds the file whether it lives in data/, the root, or any subfolder —
-  // no need to resolve the data/ subfolder ID separately.
-  const q = `name='${filename}' and '${rootId}' in ancestors and trashed=false`;
+  const parentId = await getDataFolderId();
+  const q = `name='${filename}' and '${parentId}' in parents and trashed=false`;
   const res = await driveGet(`${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive`);
   const fileId = (res.files && res.files.length > 0) ? res.files[0].id : null;
 
