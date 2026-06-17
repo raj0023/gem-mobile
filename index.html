@@ -2018,17 +2018,24 @@ async function findFileId(name, parentId) {
 }
 
 async function readJsonFromDrive(filename) {
-  const rootId   = await getGemFolderId();
-  const dataId   = await getDataFolderId();
-
-  // Search in the data/ subfolder first; if not found (or data/ == root), also try root.
-  const searchIds = dataId !== rootId ? [dataId, rootId] : [rootId];
+  const rootId = await getGemFolderId();
+  const dataId = await getDataFolderId();
   let fileId = null;
+
+  // 1. Try data/ subfolder, then GEM-Mobile root
+  const searchIds = dataId !== rootId ? [dataId, rootId] : [rootId];
   for (const pid of searchIds) {
     const q = `name='${filename}' and '${pid}' in parents and trashed=false`;
     const res = await driveGet(`${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive`);
     fileId = (res.files && res.files.length > 0) ? res.files[0].id : null;
     if (fileId) break;
+  }
+
+  // 2. Fallback: search entire My Drive by name (handles indexing delays)
+  if (!fileId) {
+    const q = `name='${filename}' and trashed=false`;
+    const res = await driveGet(`${DRIVE_API}/files?q=${encodeURIComponent(q)}&fields=files(id)&spaces=drive`);
+    fileId = (res.files && res.files.length > 0) ? res.files[0].id : null;
   }
 
   if (!fileId) {
