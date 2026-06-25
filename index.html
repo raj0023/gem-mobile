@@ -33,6 +33,7 @@
       --green:    #3fb950;
       --amber:    #d29922;
       --red:      #f85149;
+      --purple:   #cba6f7;
     }
 
     /* ── Themes ───────────────────────────────────────────────────────── */
@@ -47,6 +48,7 @@
       --green:    #15803d;
       --amber:    #92400e;
       --red:      #9b1c1c;
+      --purple:   #7c3aed;
     }
     html[data-theme="hc"] body { -webkit-font-smoothing: auto; }
     html[data-theme="hc"] .chip.active { color: #ffffff; }
@@ -64,6 +66,7 @@
       --green:    #4ade80;
       --amber:    #f59e0b;
       --red:      #f87171;
+      --purple:   #c084fc;
     }
     html[data-theme="warm"] .chip.active { color: #1c1917; }
     html[data-theme="warm"] .sort-btn.active { color: #1c1917; }
@@ -799,8 +802,9 @@
     .filter-pill:last-child { margin-right: 0; }
     .filter-pill.te-qual.active { background: rgba(63,185,80,0.12);  border-color: var(--green); color: var(--green); }
     .filter-pill.te-nq.active   { background: rgba(248,81,73,0.12);  border-color: var(--red);   color: var(--red);   }
-    .filter-pill.fe-l1.active   { background: rgba(63,185,80,0.12);  border-color: var(--green); color: var(--green); }
-    .filter-pill.fe-nl1.active  { background: rgba(248,81,73,0.12);  border-color: var(--red);   color: var(--red);   }
+    .filter-pill.fe-l1.active   { background: rgba(63,185,80,0.12);   border-color: var(--green);  color: var(--green);  }
+    .filter-pill.fe-nl1.active  { background: rgba(248,81,73,0.12);   border-color: var(--red);    color: var(--red);    }
+    .filter-pill.fe-pm.active   { background: rgba(203,166,247,0.12); border-color: var(--purple); color: var(--purple); }
     .filter-pill.nongem.active     { background: rgba(88,166,255,0.12); border-color: var(--accent); color: var(--accent); }
     .filter-pill.hascosting.active { background: rgba(63,185,80,0.1);  border-color: var(--green);  color: var(--green); }
     .filter-pill-count { font-size: 0.6875rem; opacity: 0.7; }
@@ -876,9 +880,10 @@
     .te-qual-badge  { background: rgba(63,185,80,0.15);  color: var(--green); }
     .te-nq-badge    { background: rgba(248,81,73,0.12);  color: var(--red);   }
     .te-part-badge  { background: rgba(210,153,34,0.15); color: var(--amber); }
-    .fe-l1-badge    { background: rgba(63,185,80,0.15);  color: var(--green); }
-    .fe-nl1-badge   { background: rgba(248,81,73,0.12);  color: var(--red);   }
-    .fe-some-badge  { background: rgba(210,153,34,0.15); color: var(--amber); }
+    .fe-l1-badge    { background: rgba(63,185,80,0.15);   color: var(--green);  }
+    .fe-nl1-badge   { background: rgba(248,81,73,0.12);   color: var(--red);    }
+    .fe-some-badge  { background: rgba(210,153,34,0.15);  color: var(--amber);  }
+    .fe-pm-badge    { background: rgba(203,166,247,0.15); color: var(--purple); }
     .fe-rank-tag    { font-size: 0.625rem; color: var(--text2); }
 
     /* ── Security deposit pills on cards ─────────── */
@@ -1822,9 +1827,10 @@ function teFeBadgesHtml(bid) {
 
   if (bid.fe_result) {
     const rank = (bid.fe_rank && bid.fe_rank !== '—' && bid.fe_rank !== '') ? ` <span class="fe-rank-tag">${esc(bid.fe_rank)}</span>` : '';
-    if (bid.fe_result === 'L1')                     parts.push(`<span class="fe-badge fe-l1-badge">FE L1</span>${rank}`);
-    else if (bid.fe_result === 'Not L1')            parts.push(`<span class="fe-badge fe-nl1-badge">FE ✗</span>${rank}`);
+    if (bid.fe_result === 'L1')                        parts.push(`<span class="fe-badge fe-l1-badge">FE L1</span>${rank}`);
+    else if (bid.fe_result === 'Not L1')               parts.push(`<span class="fe-badge fe-nl1-badge">FE ✗</span>${rank}`);
     else if (bid.fe_result === 'L1 in Some Schedules') parts.push(`<span class="fe-badge fe-some-badge">FE ~</span>${rank}`);
+    else if (bid.fe_result === 'L1 (Price Match)')     parts.push(`<span class="fe-badge fe-pm-badge">FE PM</span>${rank}`);
   }
 
   return parts.length ? `<div class="te-fe-badges">${parts.join('')}</div>` : '';
@@ -1841,6 +1847,7 @@ function feBadgeHtml(bid) {
   if (bid.fe_result === 'L1')                      return `<span class="fe-badge fe-l1-badge">FE L1</span>`;
   if (bid.fe_result === 'Not L1')                  return `<span class="fe-badge fe-nl1-badge">FE ✗</span>`;
   if (bid.fe_result === 'L1 in Some Schedules')    return `<span class="fe-badge fe-some-badge">FE ~</span>`;
+  if (bid.fe_result === 'L1 (Price Match)')        return `<span class="fe-badge fe-pm-badge">FE PM</span>`;
   return '';
 }
 function feRankHtml(bid) {
@@ -1885,8 +1892,9 @@ function renderFilterRow() {
   const defs = [
     { key: 'Qualified',     label: 'TE Qual.',     cls: 'te-qual',     type: 'te' },
     { key: 'Not Qualified', label: 'TE Not Q.',    cls: 'te-nq',       type: 'te' },
-    { key: 'L1',            label: 'FE L1',        cls: 'fe-l1',       type: 'fe' },
-    { key: 'Not L1',        label: 'FE Not L1',    cls: 'fe-nl1',      type: 'fe' },
+    { key: 'L1',              label: 'FE L1',        cls: 'fe-l1',  type: 'fe' },
+    { key: 'Not L1',          label: 'FE Not L1',    cls: 'fe-nl1', type: 'fe' },
+    { key: 'L1 (Price Match)', label: 'FE PM',        cls: 'fe-pm',  type: 'fe' },
     { key: '_nongem',       label: 'Non-GEM',      cls: 'nongem',      type: 'nongem' },
     { key: '_hascosting',   label: '📁 Has Costing', cls: 'hascosting', type: 'hascosting' },
   ];
@@ -2448,6 +2456,7 @@ function buildTeFeSectionDetail(bid) {
   if (bid.fe_result === 'L1')                        badges.push(`<span class="fe-badge fe-l1-badge">FE: L1</span>`);
   else if (bid.fe_result === 'Not L1')               badges.push(`<span class="fe-badge fe-nl1-badge">FE: Not L1</span>`);
   else if (bid.fe_result === 'L1 in Some Schedules') badges.push(`<span class="fe-badge fe-some-badge">FE: Partial L1</span>`);
+  else if (bid.fe_result === 'L1 (Price Match)')     badges.push(`<span class="fe-badge fe-pm-badge">FE: Price Match</span>`);
 
   if (bid.fe_rank && bid.fe_rank !== '—' && bid.fe_rank !== '') {
     badges.push(`<span class="fe-rank-tag">Rank: ${esc(bid.fe_rank)}</span>`);

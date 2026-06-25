@@ -1,0 +1,7 @@
+# Local-only files — never upload (this repo is public via GitHub Pages)
+# deploy.ps1 contains a GitHub Personal Access Token
+deploy.ps1
+# deploy.bat is the local deploy launcher
+deploy.bat
+# client_secret.json is the Google OAuth client secret
+client_secret.json
