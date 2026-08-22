@@ -2175,7 +2175,8 @@ function filteredBids() {
       (b.product             || '').toLowerCase().includes(q) ||
       (b.location            || '').toLowerCase().includes(q) ||
       (b.quoted_company      || '').toLowerCase().includes(q) ||
-      (b.gem_contract_number || '').toLowerCase().includes(q)
+      (b.gem_contract_number || '').toLowerCase().includes(q) ||
+      (b.notes               || '').toLowerCase().includes(q)
     );
   }
 
